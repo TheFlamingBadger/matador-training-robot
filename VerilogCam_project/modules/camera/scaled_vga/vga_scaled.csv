@@ -1,0 +1,32 @@
+# system info vga_scaled on 2024.09.19.13:41:09
+system_info:
+name,value
+DEVICE,EP4CE115F29C7
+DEVICE_FAMILY,Cyclone IV E
+GENERATION_ID,1726717269
+#
+#
+# Files generated for vga_scaled on 2024.09.19.13:41:09
+files:
+filepath,kind,attributes,module,is_top
+simulation/vga_scaled.v,VERILOG,,vga_scaled,true
+simulation/submodules/altera_up_video_scaler_shrink.v,VERILOG,,vga_scaled_video_scaler_0,false
+simulation/submodules/altera_up_video_scaler_multiply_width.v,VERILOG,,vga_scaled_video_scaler_0,false
+simulation/submodules/altera_up_video_scaler_multiply_height.v,VERILOG,,vga_scaled_video_scaler_0,false
+simulation/submodules/vga_scaled_video_scaler_0.v,VERILOG,,vga_scaled_video_scaler_0,false
+simulation/submodules/altera_up_avalon_video_vga_timing.v,VERILOG,,vga_scaled_video_vga_controller_0,false
+simulation/submodules/vga_scaled_video_vga_controller_0.v,VERILOG,,vga_scaled_video_vga_controller_0,false
+simulation/submodules/vga_scaled_avalon_st_adapter.v,VERILOG,,vga_scaled_avalon_st_adapter,false
+simulation/submodules/altera_reset_controller.v,VERILOG,,altera_reset_controller,false
+simulation/submodules/altera_reset_synchronizer.v,VERILOG,,altera_reset_controller,false
+simulation/submodules/altera_reset_controller.sdc,SDC,,altera_reset_controller,false
+simulation/submodules/vga_scaled_avalon_st_adapter_channel_adapter_0.sv,SYSTEM_VERILOG,,vga_scaled_avalon_st_adapter_channel_adapter_0,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+vga_scaled.video_scaler_0,vga_scaled_video_scaler_0
+vga_scaled.video_vga_controller_0,vga_scaled_video_vga_controller_0
+vga_scaled.avalon_st_adapter,vga_scaled_avalon_st_adapter
+vga_scaled.avalon_st_adapter.channel_adapter_0,vga_scaled_avalon_st_adapter_channel_adapter_0
+vga_scaled.rst_controller,altera_reset_controller
