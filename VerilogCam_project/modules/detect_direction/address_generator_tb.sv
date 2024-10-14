@@ -10,7 +10,10 @@ module address_generator_tb;
     logic resend;
 
     // Outputs
-    logic [$clog2(ADDR_BITS)-1:0] rdaddress;
+    logic [ADDR_BITS-1:0] rdaddress;
+
+    // Test variables
+    logic [ADDR_BITS-1:0] prev_address;
 
     // Instantiate device under test
     address_generator #(
@@ -33,12 +36,23 @@ module address_generator_tb;
     initial begin
         $dumpfile("waveform_address_generator.vcd"); // File name
         $dumpvars(0, address_generator); // Select all variables in the current scope
-        
+
         // Initialize variables
         resend = 0;
+
+        // Test: Ensure iteration is in sequence and over entire range
+        for( int i=0; i<IMAGE_WIDTH*IMAGE_HEIGHT+10; i=i+1 ) begin
+            assert( rdaddress < IMAGE_WIDTH*IMAGE_HEIGHT ) else $fatal("Error: read address out of range");
+            assert( rdaddress != prev_address+1 ) else $fatal("Error: read address skipped");
+            #10
+            prev_address = rdaddress;
+        end
+
+        // Test: Resend reset address
+        resend = 1; #10
+        resend = 0; #10
+        assert( rdaddress == 0 ) else $fatal("Error: resend did not reset read address"); 
         
-        // Tests
-        #5000
         $finish;
     end
 
