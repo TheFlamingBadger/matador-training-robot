@@ -4,61 +4,48 @@ module detect_direction #(
     parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
     parameter NUM_DIVISIONS = 3,                    // Number of divisions
     parameter FOV = 25,                             // Camera FOV in degrees
-    parameter MAX_COUNT = (ADDR_BITS / NUM_DIVISIONS) + 1
+    parameter MAX_SUM = 12249600,                   // 0+1+2+...+319 = 51040, 51040*240=12249600
+    parameter THRESHOLD = 8                         // The red detection threshold (0-15)
 )(
     input wire clk,                                 // 50 MHz clock signal
-    input wire start_frame,                         // Flag indicating reset to beginning of frame
-    input wire end_frame,                           // Flag indicating reset to beginning of frame
-    input wire [$clog2(ADDR_BITS)-1:0] rdaddress,   // Data read from BRAM
+    input wire [ADDR_BITS-1:0] rdaddress,           // Data read from BRAM (signed)
     input wire [11:0] rddata,                       // Data read from BRAM
-    output wire [$clog2(FOV)-1:0] direction         // Direction object detected in
+    output wire [$clog2(FOV):0] direction           // Signed heading of detected object
 );  
 
-    // If pixel over threshold
-    // Decide which division address is in
-    // Update count of corresponding division
+    // Basic Logic: If pixel over threshold, add its column number a total and
+    // increment a pixel counter. Then, when last pixel of frame is reached
+    // calclate the average column and output the corresponding FOV heading.
 
-    logic [$clog2(FOV)-1:0] direction_q;
-    int fov_divison_width = FOV / NUM_DIVISIONS;
-    logic [$clog2(MAX_COUNT):0] division_counter [NUM_DIVISIONS];
+    logic [$clog2(FOV):0] direction_q = 12;
+    logic [$clog2(MAX_SUM)-1:0] column_sum;
+    logic [$clog2(ADDR_BITS)-1:0] pixel_count;
 
     assign direction = direction_q;
     
     always @(posedge clk) begin
 
-        if( start_frame ) begin: reset_counters
+        if( rdaddress == 0 ) begin: reset_counters
 
-            for( int i=0; i<NUM_DIVISIONS; i=i+1 ) begin
-                division_counter[i] = 0;
-            end
-
-        end
-        else if( end_frame ) begin: update_output_direction
-
-            // Determine division with highest count
-            int direction_index = 0;
-            int highest_count = 0;
-
-            for( int i=0; i<NUM_DIVISIONS; i=i+1 ) begin
-                if( division_counter[ direction_index ] > highest_count ) begin
-                    direction_index = i;
-                end
-            end
-
-            // Convert to degrees
-            direction_q = direction_index*fov_divison_width + fov_divison_width/2;
+            column_sum = 0;
+            pixel_count = 0;
 
         end
-        else if( rddata[11:9] > 100 ) begin: count_pixels
 
-            // Calculate pixel width of image subdivision
-            int division_width = IMAGE_WIDTH / NUM_DIVISIONS;
+        if( rddata[11:8] > THRESHOLD ) begin: count_pixel
 
-            // Calculate which subdivision address is located in 
-            int division_index = ( rdaddress % IMAGE_HEIGHT ) / division_width;
+            column_sum = column_sum + ( rdaddress % IMAGE_WIDTH );
+            pixel_count = pixel_count + 1;
+            
+        end
+        
+        if( rdaddress == IMAGE_WIDTH*IMAGE_HEIGHT - 1 ) begin: update_output_direction
 
-            // Increment corresponding counter
-            division_counter[ division_index ] = division_counter[ division_index ] + 1;
+            // Calculate average column
+            int average_column = ( pixel_count != 0 ) ? column_sum/pixel_count : -1;
+            
+            // Convert to FOV heading in degrees
+            direction_q = (average_column >= 0) ? ( FOV * average_column ) / ( IMAGE_WIDTH - 1 ) : -1;
 
         end
     end
