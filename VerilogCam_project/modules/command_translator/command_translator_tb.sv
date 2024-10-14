@@ -53,7 +53,7 @@ module command_translator_tb;
             #10
             final_string[(i*8) +: 8] = ASCII_out; // Concatenate characters
         end
-        assert (final_string == "{\"T\":0,\"L\":0.0,\"R\":0.0}") else $fatal("Default JSON failed");
+        assert (final_string == "}0.0:\"R\",0.0:\"L\",0:\"T\"{") else $fatal("Default JSON failed");
 
         #200        
 
