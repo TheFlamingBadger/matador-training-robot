@@ -5,11 +5,12 @@ module detect_direction #(
     parameter NUM_DIVISIONS = 3,                    // Number of divisions
     parameter FOV = 25,                             // Camera FOV in degrees
     parameter MAX_SUM = 12249600,                   // 0+1+2+...+319 = 51040, 51040*240=12249600
-    parameter THRESHOLD = 8                         // The red detection threshold (0-15)
+    parameter HIGH_THRESHOLD = 11,                  // The red min detection threshold
+    parameter LOW_THRESHOLD = 6                     // The blue-green detection max threshold
 )(
-    input wire clk,                                 // 50 MHz clock signal
-    input wire [ADDR_BITS-1:0] rdaddress,           // Data read from BRAM (signed)
-    input wire [11:0] rddata,                       // Data read from BRAM
+    input wire                  clk,                // 50 MHz clock signal
+    input wire [ADDR_BITS-1:0]  rdaddress,          // Flag to reset to beginning of frame
+    input wire [11:0]           rddata,             // Data read from BRAM
     output wire [$clog2(FOV):0] direction           // Signed heading of detected object
 );  
 
@@ -20,33 +21,27 @@ module detect_direction #(
     logic [$clog2(FOV):0] direction_q = 12;
     logic [$clog2(MAX_SUM)-1:0] column_sum;
     logic [$clog2(ADDR_BITS)-1:0] pixel_count;
+    logic signed [$clog2(IMAGE_WIDTH):0] average_column;
 
     assign direction = direction_q;
     
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
+
+        average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : -1;
 
         if( rdaddress == 0 ) begin: reset_counters
 
-            column_sum = 0;
-            pixel_count = 0;
+            direction_q <= ( average_column >= 0) ? ( FOV * average_column ) / ( IMAGE_WIDTH - 1 ) : -1;
+            column_sum <= 0;
+            pixel_count <= 0;
 
         end
 
-        if( rddata[11:8] > THRESHOLD ) begin: count_pixel
+        if( rddata[11:8] > HIGH_THRESHOLD && rddata[7:4] < LOW_THRESHOLD && rddata[3:0] < LOW_THRESHOLD ) begin: count_pixel
 
-            column_sum = column_sum + ( rdaddress % IMAGE_WIDTH );
-            pixel_count = pixel_count + 1;
+            column_sum <= column_sum + ( rdaddress % IMAGE_WIDTH );
+            pixel_count <= pixel_count + 1;
             
-        end
-        
-        if( rdaddress == IMAGE_WIDTH*IMAGE_HEIGHT - 1 ) begin: update_output_direction
-
-            // Calculate average column
-            int average_column = ( pixel_count != 0 ) ? column_sum/pixel_count : -1;
-            
-            // Convert to FOV heading in degrees
-            direction_q = (average_column >= 0) ? ( FOV * average_column ) / ( IMAGE_WIDTH - 1 ) : -1;
-
         end
     end
 	

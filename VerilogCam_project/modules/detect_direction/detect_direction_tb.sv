@@ -43,20 +43,21 @@ module detect_direction_tb;
         $dumpvars(0, detect_direction); // Select all variables in the current scope
         
         // Initialize variables
-        rdaddress = 0;
+        rdaddress = 1;
         rddata = 12'h000; #15
 
         // Test: -1 (no detected direction) outputted when no red detected
-        rdaddress = IMAGE_WIDTH*IMAGE_HEIGHT-1; #10
+        rdaddress = 0; #10
         assert( direction == -6'sd1 ) else $fatal("Error: detected direction incorrect");
         
         // Test: Output 0 when red detected on left
         rdaddress = 0; #10      // Reset
+        rdaddress = 1; #10      // Reset
 
         rddata = 12'hF00; #10   // Set to red
         rddata = 12'h000;       // Set to white
 
-        rdaddress = IMAGE_WIDTH*IMAGE_HEIGHT-1; #10
+        rdaddress = 0; #20
         assert( direction == -6'sd0 ) else $fatal("Error: detected direction incorrect");
 
         // Test: Output 25 when red detected on right
@@ -66,7 +67,7 @@ module detect_direction_tb;
         rddata = 12'hF00; #10   // Set to red
         rddata = 12'h000;       // Set to white
 
-        rdaddress = IMAGE_WIDTH*IMAGE_HEIGHT-1; #10
+        rdaddress = 0; #20
         assert( direction == 6'sd25 ) else $fatal("Error: detected direction incorrect");
 
         // Test: Output correct heading for average position
@@ -78,7 +79,7 @@ module detect_direction_tb;
         rdaddress = 240 + 320*5; #10    // Set pixel address
         rddata = 12'h000;               // Set to white
 
-        rdaddress = IMAGE_WIDTH*IMAGE_HEIGHT-1; #15
+        rdaddress = 0; #15
         // Heading should be:
         // (12 + 240) / 2 = 126
         // (126 * 25) / 319 = 9.87 -> 9
