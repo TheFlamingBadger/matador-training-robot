@@ -1,10 +1,11 @@
 module uart_tx #(
     parameter CLKS_PER_BIT = (50_000_000/115_200),  // Baud_rate = 115200 with FPGA clk = 50MHz
-    parameter BITS_N = 8;                           // Number of data bits per UART frame
+    parameter BITS_N = 8                            // Number of data bits per UART frame
 ) (
     input clk,
     input reset,
     input [BITS_N-1:0] data_tx,     // Ascii bit
+	 output logic uart_out,
     output logic uart_tx,           // Output logic for UART transmission
     input valid,                    // Handshake protocol: To indicate when `data_tx` is valid to be sent onto the UART.
     output logic tx_ready           // Handshake protocol: To indicate if UART is ready to transmit
@@ -51,9 +52,9 @@ module uart_tx #(
 
     always_comb begin : fsm_output
         uart_out = 1'b1; // Default: The UART line is high.
-        ready = 1'b0;    // Default: This UART module is only ready for new data when in the IDLE state.
+        tx_ready = 1'b0;    // Default: This UART module is only ready for new data when in the IDLE state.
         case (current_state)
-            IDLE:           ready = 1'b1;                       // Handshake protocol: This UART module is ready for new data to send.
+            IDLE:           tx_ready = 1'b1;                       // Handshake protocol: This UART module is ready for new data to send.
             DATA_BITS:      uart_out = data_tx_temp[bit_n];     // Set the UART TX line to the current bit being sent.
             START_BIT:      uart_out = 1'b0;                    // The start condition is a zero.
         endcase

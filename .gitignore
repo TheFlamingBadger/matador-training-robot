@@ -1,1 +1,13 @@
+# Verilog simulation outputs
 obj_dir/
+
+# Quartus-generated backup files
+*.bak
+
+# Quartus simulation outputs
+*.rpt
+VerilogCam_project/db/
+VerilogCam_project/output_files
+VerilogCam_project/.qsys_edit
+VerilogCam_project/incremental_db
+VerilogCam_project/simulation

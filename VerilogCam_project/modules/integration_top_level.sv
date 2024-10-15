@@ -58,7 +58,7 @@ module integration_top_level (
 	reg [30:0] vga_data;
 	reg vga_start, vga_end, vga_ready;
 	reg [11:0] filtered_data;
-
+	
 	my_altpll Inst_vga_pll(
 	  .inclk0(clk_50),
 	  .c0(clk_50_camera),
@@ -68,34 +68,60 @@ module integration_top_level (
 	// take the inverted push button because KEY0 on DE2-115 board generates
 	// a signal 111000111; with 1 with not pressed and 0 when pressed/pushed;
 	assign resend =  0;
-		
-  //------------ Stream Mif Start ----------------//
-
-	stream_mif stream_mif_inst (
-		.clk           (clk_25_vga),  // Same clk domain as image processor
-		.data          (rddata),      // To image processor
-		.rdaddress     (rdaddress)    // From image processor
-	);
-
-  //------------ Stream Mif End ------------------//
   
-  //------------ Address Generator Start ---------//
+  //------------ Direction Detection Start -------//
+  
+  parameter FOV = 25;
+  reg [$clog2(FOV):0] 	direction;
+  reg [2:0]			  		command;
+  reg 						tx_ready;
 	 
+  address_generator address_generator_inst (
+		.clk			(clk_50),
+		.resend 		(resend),	// in: not connected
+		.rdaddress 	(rdaddress)	// out: to frame buffer & detect direction
+  );
   
   
-  //------------ Address Generator End -----------//
+  detect_direction detect_direction_inst (
+		.clk 			(clk_50),
+		.rdaddress 	(rdaddress),	// in: from address generator
+		.rddata 		(rddata),		// in: from frame buffer
+		.directon 	(direction)		// out: to drive logic
+  );
+  
+  //------------ Direction Detection End ---------//
   
   //------------ Command Translator Start --------//
-	 
+  
+  logic uart_out;
+  logic ready;
+  logic valid;
+  
   command_translator command_translator_inst (
 		.clk       (clk_50),
 		.command   (command),   // in: from drive logic
 		.valid     (valid),		// in: from drive logic
 		.ascii_out (ascii_out), // out: to UART
-		.ready     (ready)      // out: to UART
+		.tx_ready  (tx_ready)   // out: to UART
 	);
   
+  
+  uart_tx uart_tx_inst (
+		.clk (clk),
+		.data_tx (ascii_out),	// in: from command translator
+		.valid (tx_ready),		// in: from command translator
+//		.tx_ready (tx_ready), 	// out: maybe need to use in command translator
+		.uart_tx (uart_tx)		// out: to base
+  );
+  
   //------------ Command Translator End ----------//
+  
+  //------------ Drive Logic Begin ---------------//
+  
+  // output valid to command tranlator
+  
+  //------------ Drive Logic End -----------------//
 
   //------------ Microphone Start ----------------//
 
