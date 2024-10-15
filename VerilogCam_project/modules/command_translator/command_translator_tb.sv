@@ -1,11 +1,12 @@
 module command_translator_tb;
     // Testbench Signals
-    logic         clk;
-    logic [2:0]   command;
-    logic 		   valid;
-    logic [7:0]   ascii_out;
-    logic         ready;
-    logic [199:0] final_string;   // Max 25 characters
+    logic           clk;
+    logic [2:0]     command;
+    logic 		    valid;
+    logic [7:0]     ascii_out;
+    logic           tx_ready;
+    logic           rx_ready;
+    logic [199:0]   final_string;   // Max 25 characters
 
     // Instantiate Module
     command_translator DUT (
@@ -13,14 +14,14 @@ module command_translator_tb;
         .command(command),
         .valid(valid),
         .ascii_out(ascii_out),
-        .ready(ready)
+        .tx_ready(tx_ready),
+        .rx_ready(rx_ready)
     );
 
     // Clock Generation
     initial begin
         clk = 0;
         forever #5 clk = ~clk; // 100MHz clock
-        final_string = 200'b0;
     end
 
     // Test Procedure
@@ -29,11 +30,12 @@ module command_translator_tb;
         $dumpvars();
 
         // Initialisation
+        final_string = 200'b0;
         command = 0;
         valid = 1;
         #10
         for (int i = 0; i < 25; i++) begin
-            if (i == 24) begin
+            if (rx_ready == 0) begin
                 valid = 0;
             end
             #10
@@ -42,12 +44,15 @@ module command_translator_tb;
         assert (final_string == "}5.0:\"R\",5.0:\"L\",1:\"T\"{") else $fatal("command 0 JSON failed");    // command is reversed
         
         #100
-        command = 7;
-        valid = 1;
+        // while () begin
+        
+        // end
         final_string = 200'b0;
+        command = 1;
+        valid = 1;
         #20
         for (int i = 0; i < 25; i++) begin
-            if (i == 24) begin
+            if (rx_ready == 0) begin
                 valid = 0;
             end
             #10
