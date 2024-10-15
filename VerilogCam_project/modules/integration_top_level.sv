@@ -79,50 +79,25 @@ module integration_top_level (
 
   //------------ Stream Mif End ------------------//
   
-  //------------ Image Processor Start ---------//
+  //------------ Address Generator Start ---------//
 	 
-  image_processor image_inst (
-    
-	 //inputs
-	 .clk_25_vga(clk_25_vga),
-    .resend(resend),
-    .rddata(rddata),
-	 .vga_ready(vga_ready),
-	 .r_mod(r_mod),
-	 .g_mod(g_mod),
-	 .b_mod(b_mod),
-	 .div_flag(div_flag),
-	
-	 //outputs
-    .rdaddress(rdaddress),
-    .vga_start(vga_start),
-    .vga_end(vga_end),
-    .vga_data(vga_data)
-  );
   
-  //------------ Image Processor End -----------//
-
-
-	vga_scaled vga_init(
-	  .clk_clk(clk_25_vga),                                         		//                                       clk.clk
-	  .reset_reset_n(1'b1), // btn_resend                                  				//                                     reset.reset_n
-	  .video_scaler_0_avalon_scaler_sink_startofpacket(vga_start), 		//         video_scaler_0_avalon_scaler_sink.startofpacket
-	  .video_scaler_0_avalon_scaler_sink_endofpacket(vga_end),   			//                                          .endofpacket
-	  .video_scaler_0_avalon_scaler_sink_valid(1'b1),   //  sink_value???                                           .valid
-	  .video_scaler_0_avalon_scaler_sink_ready(vga_ready),         		//                                          .ready
-	  .video_scaler_0_avalon_scaler_sink_data(vga_data),         			//                                          .data
-	//		.video_scaler_0_avalon_scaler_sink_data(rddata), 
-	  .video_vga_controller_0_external_interface_CLK(vga_CLK),   			// video_vga_controller_0_external_interface.CLK
-	  .video_vga_controller_0_external_interface_HS(vga_hsync),    		//                                          .HS
-	  .video_vga_controller_0_external_interface_VS(vga_vsync),    		//                                          .VS
-	  .video_vga_controller_0_external_interface_BLANK(vga_blank_N), 	//                                          .BLANK
-	  .video_vga_controller_0_external_interface_SYNC(vga_sync_N),  		//                                          .SYNC
-	  .video_vga_controller_0_external_interface_R(vga_r),     			//                                          .R
-	  .video_vga_controller_0_external_interface_G(vga_g),     			//                                          .G
-	  .video_vga_controller_0_external_interface_B(vga_b)      			//                                          .B
+  
+  //------------ Address Generator End -----------//
+  
+  //------------ Command Translator Start --------//
+	 
+  command_translator command_translator_inst (
+		.clk       (clk_50),
+		.command   (command),   // in: from drive logic
+		.valid     (valid),		// in: from drive logic
+		.ascii_out (ascii_out), // out: to UART
+		.ready     (ready)      // out: to UART
 	);
+  
+  //------------ Command Translator End ----------//
 
-  //------------ MICROPHONE-START --------------//
+  //------------ Microphone Start ----------------//
 
   localparam W        = 16;   //NOTE: To change this, you must also change the Twiddle factor initialisations in r22sdf/Twiddle.v. You can use r22sdf/twiddle_gen.pl.
   localparam NSamples = 1024; //NOTE: To change this, you must also change the SdfUnit instantiations in r22sdf/FFT.v accordingly.
@@ -155,97 +130,6 @@ module integration_top_level (
 
   display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
 
-  //------------ MICROPHONE-END ----------------//
-
-  //------------ PIXEL_FILTER-START ------------//
-
-  logic [5:0] r_mod;
-  logic [5:0] g_mod;
-  logic [5:0] b_mod;
-
-  pixel_filt u_pixel_filter (
-    .clk(clk_50),
-    .filter_number(filter_number),
-    .audio_pitch(pitch_output.data),
-    .r_mod(r_mod),
-    .g_mod(g_mod),
-    .b_mod(b_mod),
-	 .div_flag(div_flag)
-  );
-
-  //------------ PIXEL_FILTER-END --------------//
-
-  //------------ FSM & LCD START ---------------//
-  
-	wire       address;     //   avalon_lcd_slave.address
-	wire       chipselect;  //                   .chipselect
-	wire       read;        //                   .read
-	wire       write;       //                   .write
-	wire [7:0] writedata;   //                   .writedata
-	wire [7:0] readdata;    //                   .readdata
-	wire       waitrequest; //                   .waitrequest
-	
-	// Next and previous filter buttons
-	wire prev_button, next_button;
-
-	debounce debounce_prev (
-	  .clk(clk_50),
-	  .button(~KEY[3]),
-	  .button_pressed(prev_button)
-	);
-
-	debounce debounce_next (
-	  .clk(clk_50),
-	  .button(~KEY[2]),
-	  .button_pressed(next_button)
-	);
-
-	// Filter select FSM module
-	wire [2:0] filter_number;
-	wire lcd_reset;
-
-	filter_fsm filter_fsm_inst (
-	  .clk(clk_50),
-	  .lcd_reset(lcd_reset),		  // to lcd module
-	  .next_button(next_button),    // from debounce_next
-	  .prev_button(prev_button),    // from debounce_prev
-	  .filter_number(filter_number) // to pixel_filter and convolution_filter
-	);
-	
-	lcd_display (
-		 .clk(clk_50),
-		 .reset(lcd_reset),
-		 .filter_number(filter_number),
-		 // Avalon-MM signals to LCD_Controller slave
-		 .address(address),          // Address line for LCD controller
-		 .chipselect(chipselect),
-		 .byteenable(),
-		 .read(),
-		 .write(write),
-		 .waitrequest(waitrequest),
-		 .readdata(),
-		 .response(),
-		 .writedata(writedata)
-	);
-
-	char_display u_char_display (
-		.clk         (clk_50),    //                clk.clk
-		.reset       (lcd_reset),   //              reset.reset
-		.address     (address),     //   avalon_lcd_slave.address
-		.chipselect  (chipselect),  //                   .chipselect
-		.read        (read),        //                   .read
-		.write       (write),       //                   .write
-		.writedata   (writedata),   //                   .writedata
-		.readdata    (readdata),    //                   .readdata
-		.waitrequest (waitrequest), //                   .waitrequest
-		.LCD_DATA    (LCD_DATA),    // external_interface.export
-		.LCD_ON      (LCD_ON),      //                   .export
-		.LCD_BLON    (LCD_BLON),    //                   .export
-		.LCD_EN      (LCD_EN),      //                   .export
-		.LCD_RS      (LCD_RS),      //                   .export
-		.LCD_RW      (LCD_RW)       //                   .export
-	);
-	
-	//------------ FSM & LCD END ----------------//
+  //------------ Microphone End ------------------//
   
 endmodule
