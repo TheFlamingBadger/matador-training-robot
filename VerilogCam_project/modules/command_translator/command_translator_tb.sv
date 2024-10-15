@@ -5,7 +5,7 @@ module command_translator_tb;
     logic 		    valid;
     logic [7:0]     ascii_out;
     logic           tx_ready;
-    logic [199:0]   final_string;   // Max 25 characters
+    logic [199:0]   final_string;   // Max 23 characters
 
     // Instantiate Module
     command_translator DUT (
@@ -27,35 +27,47 @@ module command_translator_tb;
         $dumpfile("waveform.vcd");
         $dumpvars();
 
-        // Initialisation
+        // NORMAL OPERATION
+        valid = 1;
         final_string = 200'b0;
         command = 0;
-        valid = 1;
-        #10
-        for (int i = 0; i < 25; i++) begin
-            // if (ready == 0) begin
-            //     valid = 0;
-            // end
+        #15
+        for (int j = 0; j < 25; j++) begin
             #10
-            final_string[(i*8) +: 8] = ascii_out; // Concatenate characters
-        end #15
-        assert (final_string == "}5.0:\"R\",5.0:\"L\",1:\"T\"{") else $fatal("command 0 JSON failed");    // command is reversed
+            if (tx_ready) begin
+                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+            end
+        end
+        assert (final_string == "}05.0:\"R\",05.0:\"L\",1:\"T\"{") else $fatal("command 0 JSON failed");    // command is reversed
         
-        #100
         final_string = 200'b0;
         command = 1;
-        valid = 1;
-        #20
-        for (int i = 0; i < 25; i++) begin
-            // if (rx_ready == 0) begin
-            //     valid = 0;
-            // end
+        #15
+        for (int j = 0; j < 25; j++) begin
             #10
-            final_string[(i*8) +: 8] = ascii_out; // Concatenate characters
+            if (tx_ready) begin
+                final_string[(j*8) +: 8] = ascii_out;   // Concatenate characters
+            end
         end
-        assert (final_string == "}0.0:\"R\",0.0:\"L\",0:\"T\"{") else $fatal("Default JSON failed");
+        assert (final_string == "}00.0:\"R\",00.0:\"L\",0:\"T\"{") else $fatal("Default JSON failed");
 
-        #200        
+        #5
+        // TRANSMISSION INTERRUPTED BY CHANGE IN COMMAND
+        final_string = 200'b0;
+        command = 0;
+        #15
+        for (int j = 0; j < 25; j++) begin
+            #10
+            if (tx_ready) begin
+                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+            end
+            if (j == 20) begin
+                command = 1;                            
+            end
+        end
+        assert (final_string == "}05.0:\"R\",05.0:\"L\",1:\"T\"{") else $fatal("command 0 JSON failed");
+
+        #10      
 
         $finish();
     end
