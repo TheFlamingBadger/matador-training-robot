@@ -5,24 +5,24 @@ module drive_logic #(
 	parameter FOV = 25
 	)(
 	input wire clk,
-	input wire [$clog2(FOV)-1:0] detected_direction,
+	input wire [$clog2(FOV):0] detected_direction,
 	input wire average_distance,
 	input wire [3:0] pitch,
 	input wire [3:0] amplitude,
-//	input wire instruction_index
-	output [2:0] drive_command
-	)
+	output [2:0] drive_command,
+	output valid
+);
 	
 	logic command;
 	
-	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = stop;
+	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
 	
 	always_ff begin
 		if (amplitude > AMPLITUDE_THRESHOLD) begin
 			if (pitch < MAX_CLAP_PITCH) begin
 				command <= 0;
 			end
-			else if (pitch > whistle_pitch) begin
+			else if (pitch > MIN_WHISTLE_PITCH) begin
 				command <= 1;
 			end
 		end
@@ -56,4 +56,8 @@ module drive_logic #(
 			Fast_right: drive_command = 5;
 		endcase 
 	end
+	
+	assign valid = 1;
+	
+endmodule
 			

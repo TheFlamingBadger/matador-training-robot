@@ -3,7 +3,8 @@ module fft_pitch_detect (
     input audio_clk,
     input reset,
     dstream.in  audio_input,
-    dstream.out pitch_output
+    dstream.out pitch_output,
+	 output [32:0] magnitude
 );
     parameter W        = 16;   //NOTE: To change this, you must also change the Twiddle factor initialisations in r22sdf/Twiddle.v. You can use r22sdf/twiddle_gen.pl.
     parameter NSamples = 1024; //NOTE: To change this, you must also change the SdfUnit instantiations in r22sdf/FFT.v accordingly.
@@ -77,6 +78,8 @@ module fft_pitch_detect (
         .mag_sq(mag_sq), 
         .mag_valid(mag_valid)
     );
+	 
+	 assign magnitude = mag_sq;
 	 
 	 
 	 // Peak Detection

@@ -23,6 +23,8 @@ module integration_top_level (
 		output wire ov7670_reset,
 		output wire [17:0] LEDR,
 		output wire [3:0] LEDG,
+		
+		inout [35:0] GPIO,
 
 		output	I2C_SCLK,
 		inout		I2C_SDAT,
@@ -87,43 +89,100 @@ module integration_top_level (
 		.clk 			(clk_50),
 		.rdaddress 	(rdaddress),	// in: from address generator
 		.rddata 		(rddata),		// in: from frame buffer
-		.directon 	(direction)		// out: to drive logic
+		.direction 	(direction)		// out: to drive logic
   );
   
   //------------ Direction Detection End ---------//
   
   //------------ Command Translator Start --------//
   
-  logic uart_out;
-  logic ready;
+  logic cmd_ready;
   logic valid;
+  
+  assign command = 3'b0;
   
   command_translator command_translator_inst (
 		.clk       (clk_50),
 		.command   (command),   // in: from drive logic
 		.valid     (valid),		// in: from drive logic
 		.ascii_out (ascii_out), // out: to UART
-		.tx_ready  (tx_ready)   // out: to UART
+		.cmd_ready (cmd_ready)  // out: to UART
 	);
   
+  logic [7:0] test_uart;
+  logic test_valid;
+  assign test_valid = 1;
+  assign test_uart = 8'd38;
   
   uart_tx uart_tx_inst (
-		.clk (clk),
-		.data_tx (ascii_out),	// in: from command translator
-		.valid (tx_ready),		// in: from command translator
-//		.tx_ready (tx_ready), 	// out: maybe need to use in command translator
-		.uart_tx (uart_tx)		// out: to base
+		.clk (clk_50),
+		.data_tx (test_uart),	// in: from command translator
+		.valid (test_valid),		// in: from command translator
+		.uart_tx (GPIO[5])		// out: to base
   );
   
   //------------ Command Translator End ----------//
   
-  //------------ Drive Logic Begin ---------------//
+  //------------ Ultrasonic Sensor Begin ---------//
   
-  // output valid to command tranlator
+	logic start, reset;
+	logic echo, trigger;
+	logic pll_clk, locked;
+	logic [7:0] raw_distance;
+	logic [7:0] avg_distance;
+
+	assign echo = GPIO[34];
+	assign GPIO[35] = trigger;
+
+	PLL PPL_inst (
+		.areset(reset),
+		.inclk0(clk_50),
+		.c0(pll_clk),
+		.locked(locked)
+	);
+
+	logic [23:0] pulse_counter;  // 24-bit counter for 50 MHz clock to 4 Hz clock division
+	localparam integer PULSE_PERIOD = 50_000_000 / (2 * 4);  // Division factor for 4 Hz
+
+	always_ff @(posedge clk_50 or posedge reset) begin
+		 if (reset) begin
+			  pulse_counter <= 0;
+			  measure_pulse <= 0;
+		 end else begin
+			  pulse_counter <= pulse_counter + 1;
+			  if (pulse_counter >= PULSE_PERIOD) begin
+					measure_pulse <= 1;  // Generate a short pulse
+					pulse_counter <= 0;
+			  end else begin
+					measure_pulse <= 0;  // Keep it low otherwise
+			  end
+		 end
+	end
+
+	sensor_driver u0(
+	  .clk(clk_50),
+	  .rst(measure_pulse),
+	  .measure(pll_clk),
+	  .echo(echo),
+	  .trig(trigger), 
+	  .distance(raw_distance)
+	);
+	  
+
+	oned_convolution_filt (
+		.clk(clk_50),
+		.reset(reset),
+		.distance(raw_distance),
+		.avg_out(avg_distance)
+	);
+	
+	assign LEDR = avg_distance;
   
-  //------------ Drive Logic End -----------------//
+  //------------ Ultrasonic Sensor End -----------//
 
   //------------ Microphone Start ----------------//
+  
+  logic [32:0] magnitude;
 
   localparam W        = 16;   //NOTE: To change this, you must also change the Twiddle factor initialisations in r22sdf/Twiddle.v. You can use r22sdf/twiddle_gen.pl.
   localparam NSamples = 1024; //NOTE: To change this, you must also change the SdfUnit instantiations in r22sdf/FFT.v accordingly.
@@ -151,11 +210,26 @@ module integration_top_level (
     .audio_clk(AUD_BCLK),
     .reset(~KEY[0]),
     .audio_input(audio_input),
-    .pitch_output(pitch_output)
+    .pitch_output(pitch_output),
+	 .magnitude(magnitude)
   );
 
   display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
 
   //------------ Microphone End ------------------//
+  
+  //------------ Drive Logic Begin ---------------//
+  
+  drive_logic drive_logic_inst (
+		.clk                (clk),
+		.detected_direction (direction),				// in: from detect direction
+		.average_distance   (avg_distance),			// in: from ultrasonic
+		.pitch              (pitch_output.data),	// in: from microphone
+		.amplitude          (magnitude),				// in: from microphone
+		.drive_command      (),				// out: to command translator
+		.valid              (valid)					// out: to command translator
+	);
+  
+  //------------ Drive Logic End -----------------//
   
 endmodule
