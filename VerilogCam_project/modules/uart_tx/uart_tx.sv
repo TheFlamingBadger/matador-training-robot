@@ -21,11 +21,7 @@ module uart_tx #(
          case (current_state)
             IDLE:        next_state = valid ? START_BIT : IDLE;                           // Handshake protocol: Only start sending data when valid data comes through.
             START_BIT:   next_state = (counter == CLKS_PER_BIT) ? DATA_BITS : START_BIT;
-            DATA_BITS:   begin                                                            // Send all `BITS_N` bits.
-               if (counter == CLKS_PER_BIT) begin
-                  next_state = (bit_n == 3'(BITS_N - 1)) ? STOP_BIT : DATA_BITS;
-               end
-            end
+            DATA_BITS:   next_state = (counter == CLKS_PER_BIT) ? ((bit_n == 3'(BITS_N - 1)) ? STOP_BIT : DATA_BITS) : DATA_BITS;
             STOP_BIT:    next_state = (counter == CLKS_PER_BIT) ? IDLE : STOP_BIT;
             default:     next_state = IDLE;
          endcase

@@ -66,6 +66,44 @@ module integration_top_level (
 	  .c0(clk_50_camera),
 	  .c1(clk_25_vga)
 	);
+	
+	//------------ Microphone Start ----------------//
+  
+  logic [32:0] magnitude;
+
+  localparam W        = 16;   //NOTE: To change this, you must also change the Twiddle factor initialisations in r22sdf/Twiddle.v. You can use r22sdf/twiddle_gen.pl.
+  localparam NSamples = 1024; //NOTE: To change this, you must also change the SdfUnit instantiations in r22sdf/FFT.v accordingly.
+
+  logic adc_clk; adc_pll adc_pll_u (.areset(1'b0),.inclk0(clk_50),.c0(adc_clk)); // generate 18.432 MHz clock
+  logic i2c_clk; i2c_pll i2c_pll_u (.areset(1'b0),.inclk0(clk_50),.c0(i2c_clk)); // generate 20 kHz clock
+
+  set_audio_encoder set_codec_u (.i2c_clk(i2c_clk), .I2C_SCLK(I2C_SCLK), .I2C_SDAT(I2C_SDAT));
+
+  dstream #(.N(W))                audio_input ();
+  dstream #(.N($clog2(NSamples))) pitch_output ();
+
+  mic_load #(.N(W)) u_mic_load (
+    .adclrc(AUD_ADCLRCK),
+    .bclk(AUD_BCLK),
+    .adcdat(AUD_ADCDAT),
+    .sample_data(audio_input.data),
+    .valid(audio_input.valid)
+  );
+    
+  assign AUD_XCK = adc_clk;
+
+  fft_pitch_detect #(.W(W), .NSamples(NSamples)) DUT (
+    .clk(adc_clk),
+    .audio_clk(AUD_BCLK),
+    .reset(~KEY[0]),
+    .audio_input(audio_input),
+    .pitch_output(pitch_output),
+	 .magnitude(magnitude)
+  );
+
+  display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
+
+  //------------ Microphone End ------------------//
 
 	// take the inverted push button because KEY0 on DE2-115 board generates
 	// a signal 111000111; with 1 with not pressed and 0 when pressed/pushed;
@@ -93,35 +131,6 @@ module integration_top_level (
   );
   
   //------------ Direction Detection End ---------//
-  
-  //------------ Command Translator Start --------//
-  
-  logic cmd_ready;
-  logic valid;
-  
-  assign command = 3'b0;
-  
-  command_translator command_translator_inst (
-		.clk       (clk_50),
-		.command   (command),   // in: from drive logic
-		.valid     (valid),		// in: from drive logic
-		.ascii_out (ascii_out), // out: to UART
-		.cmd_ready (cmd_ready)  // out: to UART
-	);
-  
-  logic [7:0] test_uart;
-  logic test_valid;
-  assign test_valid = 1;
-  assign test_uart = 8'd38;
-  
-  uart_tx uart_tx_inst (
-		.clk (clk_50),
-		.data_tx (test_uart),	// in: from command translator
-		.valid (test_valid),		// in: from command translator
-		.uart_tx (GPIO[5])		// out: to base
-  );
-  
-  //------------ Command Translator End ----------//
   
   //------------ Ultrasonic Sensor Begin ---------//
   
@@ -179,46 +188,10 @@ module integration_top_level (
 	assign LEDR = avg_distance;
   
   //------------ Ultrasonic Sensor End -----------//
-
-  //------------ Microphone Start ----------------//
-  
-  logic [32:0] magnitude;
-
-  localparam W        = 16;   //NOTE: To change this, you must also change the Twiddle factor initialisations in r22sdf/Twiddle.v. You can use r22sdf/twiddle_gen.pl.
-  localparam NSamples = 1024; //NOTE: To change this, you must also change the SdfUnit instantiations in r22sdf/FFT.v accordingly.
-
-  logic adc_clk; adc_pll adc_pll_u (.areset(1'b0),.inclk0(clk_50),.c0(adc_clk)); // generate 18.432 MHz clock
-  logic i2c_clk; i2c_pll i2c_pll_u (.areset(1'b0),.inclk0(clk_50),.c0(i2c_clk)); // generate 20 kHz clock
-
-  set_audio_encoder set_codec_u (.i2c_clk(i2c_clk), .I2C_SCLK(I2C_SCLK), .I2C_SDAT(I2C_SDAT));
-
-  dstream #(.N(W))                audio_input ();
-  dstream #(.N($clog2(NSamples))) pitch_output ();
-
-  mic_load #(.N(W)) u_mic_load (
-    .adclrc(AUD_ADCLRCK),
-    .bclk(AUD_BCLK),
-    .adcdat(AUD_ADCDAT),
-    .sample_data(audio_input.data),
-    .valid(audio_input.valid)
-  );
-    
-  assign AUD_XCK = adc_clk;
-
-  fft_pitch_detect #(.W(W), .NSamples(NSamples)) DUT (
-    .clk(adc_clk),
-    .audio_clk(AUD_BCLK),
-    .reset(~KEY[0]),
-    .audio_input(audio_input),
-    .pitch_output(pitch_output),
-	 .magnitude(magnitude)
-  );
-
-  display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
-
-  //------------ Microphone End ------------------//
   
   //------------ Drive Logic Begin ---------------//
+  
+  logic valid;
   
   drive_logic drive_logic_inst (
 		.clk                (clk),
@@ -231,5 +204,46 @@ module integration_top_level (
 	);
   
   //------------ Drive Logic End -----------------//
+  
+  //------------ Command Translator Start --------//
+  
+  logic cmd_ready;
+  
+  assign command = 3'b0;
+  
+  command_translator command_translator_inst (
+		.clk       (clk_50),
+		.command   (command),   // in: from drive logic
+		.valid     (valid),		// in: from drive logic
+		.ascii_out (ascii_out), // out: to UART
+		.cmd_ready (cmd_ready)  // out: to UART
+	);
+  
+  logic [7:0] test_ascii;
+  assign test_ascii = 8'd38;
+  logic test_valid;
+//  assign test_valid = 1;
+  
+  initial test_valid = 1'b0;
+
+	always begin
+		 #10 
+		 test_valid = ~test_valid;
+//		 if (test_valid) begin
+//			test_ascii = 8'd36;
+//		 end
+//		 else begin
+//			test_ascii = 8'd38;
+//		 end
+	end
+  
+  uart_tx uart_tx_inst (
+		.clk (clk_50),
+		.data_tx (ascii_out),	// in: from command translator
+		.valid (valid),		   // in: from command translator
+		.uart_out(GPIO[5])		// out: to base
+  );
+  
+  //------------ Command Translator End ----------//
   
 endmodule

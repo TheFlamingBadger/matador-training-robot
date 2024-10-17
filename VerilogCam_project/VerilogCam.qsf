@@ -1199,6 +1199,7 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[3]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[0]
+set_global_assignment -name SYSTEMVERILOG_FILE modules/uart_tx/uart_tx.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/drive_logic/drive_logic.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/detect_direction/detect_direction.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/detect_direction/address_generator.sv
@@ -1206,8 +1207,6 @@ set_global_assignment -name SYSTEMVERILOG_FILE modules/ultrasonic_sensor/US_top_
 set_global_assignment -name SYSTEMVERILOG_FILE modules/ultrasonic_sensor/sensor_driver_tb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/ultrasonic_sensor/sensor_driver.sv
 set_global_assignment -name QIP_FILE modules/ultrasonic_sensor/PLL.qip
-set_global_assignment -name SYSTEMVERILOG_FILE modules/command_translator/uart_tx_tb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE modules/command_translator/uart_tx.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/command_translator/command_translator.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/fsm/lcd_display.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/stream_mif/stream_mif.sv
