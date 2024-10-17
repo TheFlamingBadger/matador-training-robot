@@ -7,7 +7,7 @@ module command_translator (
     output logic      cmd_ready
 );
     // Define a fixed-size byte array to hold the JSON command
-    logic [7:0] json_command[0:26];  // Adjust size as needed
+    logic [7:0] json_command[0:27];  // Adjust size as needed
     int command_length;
 
     always_comb begin 
@@ -15,34 +15,34 @@ module command_translator (
 			case(command)
 				 3'd0: begin
 					  // STOP
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd1: begin
 				     // Fast Left
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd2: begin
 				     // Left
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a};
 				 end
 				 3'd3: begin
 				     // Straight
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd4: begin
 				     // Right
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a};
 				 end
 				 3'd5: begin
 				     // Hard Right
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 default: begin
 				     // STOP
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d};
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
 				 end
 			endcase
-			command_length = 27;  // Total length of the command
+			command_length = 28;  // Total length of the command
     end
 
     int i = 0;
