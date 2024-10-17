@@ -22,7 +22,7 @@ module integration_top_level (
 		output wire ov7670_pwdn,
 		output wire ov7670_reset,
 		output wire [17:0] LEDR,
-		output wire [3:0] LEDG,
+		output wire [7:0] LEDG,
 		
 		inout [35:0] GPIO,
 
@@ -65,6 +65,45 @@ module integration_top_level (
 	  .inclk0(clk_50),
 	  .c0(clk_50_camera),
 	  .c1(clk_25_vga)
+	);
+	
+	//------------ Image Processor Start ---------//
+	 
+  image_processor image_inst (
+    
+	 //inputs
+	 .clk_25_vga(clk_25_vga),
+    .resend(resend),
+    .rddata(rddata),
+	 .vga_ready(vga_ready),
+	
+	 //outputs
+    .rdaddress(rdaddress),
+    .vga_start(vga_start),
+    .vga_end(vga_end),
+    .vga_data(vga_data)
+  );
+  
+  //------------ Image Processor End -----------//
+
+
+	vga_scaled vga_init(
+	  .clk_clk(clk_25_vga),                                         		//                                       clk.clk
+	  .reset_reset_n(1'b1), // btn_resend                                  				//                                     reset.reset_n
+	  .video_scaler_0_avalon_scaler_sink_startofpacket(vga_start), 		//         video_scaler_0_avalon_scaler_sink.startofpacket
+	  .video_scaler_0_avalon_scaler_sink_endofpacket(vga_end),   			//                                          .endofpacket
+	  .video_scaler_0_avalon_scaler_sink_valid(1'b1),   //  sink_value???                                           .valid
+	  .video_scaler_0_avalon_scaler_sink_ready(vga_ready),         		//                                          .ready
+	  .video_scaler_0_avalon_scaler_sink_data(vga_data),         			//                                          .data
+	//		.video_scaler_0_avalon_scaler_sink_data(rddata), 
+	  .video_vga_controller_0_external_interface_CLK(vga_CLK),   			// video_vga_controller_0_external_interface.CLK
+	  .video_vga_controller_0_external_interface_HS(vga_hsync),    		//                                          .HS
+	  .video_vga_controller_0_external_interface_VS(vga_vsync),    		//                                          .VS
+	  .video_vga_controller_0_external_interface_BLANK(vga_blank_N), 	//                                          .BLANK
+	  .video_vga_controller_0_external_interface_SYNC(vga_sync_N),  		//                                          .SYNC
+	  .video_vga_controller_0_external_interface_R(vga_r),     			//                                          .R
+	  .video_vga_controller_0_external_interface_G(vga_g),     			//                                          .G
+	  .video_vga_controller_0_external_interface_B(vga_b)      			//                                          .B
 	);
 	
 	//------------ Microphone Start ----------------//
@@ -115,12 +154,15 @@ module integration_top_level (
   reg [$clog2(FOV):0] 	direction;
   reg [2:0]			  		command;
   reg 						tx_ready;
+  
+  assign LEDG = direction;
 	 
-  address_generator address_generator_inst (
-		.clk			(clk_50),
-		.resend 		(resend),	// in: not connected
-		.rdaddress 	(rdaddress)	// out: to frame buffer & detect direction
-  );
+	 
+//  address_generator address_generator_inst (
+//		.clk			(clk_50),
+//		.resend 		(resend),		// in: not connected
+//		.rdaddress 	(rdaddress)		// out: to frame buffer & detect direction
+//  );
   
   
   detect_direction detect_direction_inst (
@@ -168,7 +210,7 @@ module integration_top_level (
 		 end
 	end
 
-	sensor_driver u0(
+	sensor_driver u0 (
 	  .clk(clk_50),
 	  .rst(measure_pulse),
 	  .measure(pll_clk),
@@ -208,40 +250,27 @@ module integration_top_level (
   //------------ Command Translator Start --------//
   
   logic cmd_ready;
+  logic uart_ready;
+  logic [7:0] ascii_out;
   
-  assign command = 3'b0;
+  assign command = 3'd3;
   
   command_translator command_translator_inst (
 		.clk       (clk_50),
 		.command   (command),   // in: from drive logic
 		.valid     (valid),		// in: from drive logic
+		.uart_ready(uart_ready),// in: from UART
 		.ascii_out (ascii_out), // out: to UART
 		.cmd_ready (cmd_ready)  // out: to UART
 	);
   
-  logic [7:0] test_ascii;
-  assign test_ascii = 8'd38;
-  logic test_valid;
-//  assign test_valid = 1;
-  
-  initial test_valid = 1'b0;
-
-	always begin
-		 #10 
-		 test_valid = ~test_valid;
-//		 if (test_valid) begin
-//			test_ascii = 8'd36;
-//		 end
-//		 else begin
-//			test_ascii = 8'd38;
-//		 end
-	end
   
   uart_tx uart_tx_inst (
 		.clk (clk_50),
 		.data_tx (ascii_out),	// in: from command translator
-		.valid (valid),		   // in: from command translator
-		.uart_out(GPIO[5])		// out: to base
+		.valid (cmd_ready),		   // in: from command translator
+		.uart_out(GPIO[5]),		// out: to base
+		.tx_ready(uart_ready)	// out: to command translator
   );
   
   //------------ Command Translator End ----------//
