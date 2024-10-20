@@ -11,3 +11,7 @@ VerilogCam_project/output_files
 VerilogCam_project/.qsys_edit
 VerilogCam_project/incremental_db
 VerilogCam_project/simulation
+
+# Quartus-generated binary files
+.qws
+VerilogCam_project/VerilogCam.qws

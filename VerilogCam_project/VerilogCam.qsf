@@ -1199,7 +1199,6 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[0]
 set_global_assignment -name VERILOG_FILE modules/IR_reader/pll1.v
 set_global_assignment -name QIP_FILE modules/IR_reader/pll1.qip
 set_global_assignment -name VERILOG_FILE modules/IR_reader/IR_RECEIVE_Terasic.v
-set_global_assignment -name SYSTEMVERILOG_FILE modules/camera/top_level.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/uart_tx/uart_tx.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/drive_logic/drive_logic.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/detect_direction/detect_direction.sv

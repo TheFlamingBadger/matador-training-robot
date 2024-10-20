@@ -63,11 +63,16 @@ module image_processor #(
 	 
     // Convert processed data to VGA format
     always @(*) begin
-        vga_data = {
-            {rddata[PIXEL_BITS-1:PIXEL_BITS-4], rddata[PIXEL_BITS-1:PIXEL_BITS-4], 2'b00},
-            {rddata[PIXEL_BITS-5:PIXEL_BITS-8], rddata[PIXEL_BITS-5:PIXEL_BITS-8], 2'b00},
-            {rddata[PIXEL_BITS-9:PIXEL_BITS-12], rddata[PIXEL_BITS-9:PIXEL_BITS-12], 2'b00}
-        };
+	     if( rddata[11:8] > 3 && rddata[7:4] < rddata[11:8] - 3 && rddata[3:0] < rddata[11:8] - 3 ) begin
+		      vga_data = {
+                {rddata[PIXEL_BITS-1:PIXEL_BITS-4], rddata[PIXEL_BITS-1:PIXEL_BITS-4], 2'b00},
+                {rddata[PIXEL_BITS-5:PIXEL_BITS-8], rddata[PIXEL_BITS-5:PIXEL_BITS-8], 2'b00},
+                {rddata[PIXEL_BITS-9:PIXEL_BITS-12], rddata[PIXEL_BITS-9:PIXEL_BITS-12], 2'b00}
+            };
+		  end
+		  else begin
+		      vga_data = 30'b0;
+		  end
     end
 
 endmodule
