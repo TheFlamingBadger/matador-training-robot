@@ -142,12 +142,7 @@ image_processor image_inst (
 	 .clk_25_vga(clk_25_vga),
     .resend(resend),
     .rddata(rddata),
-	 .vga_ready(vga_ready),
-	 .r_mod(r_mod),
-	 .g_mod(g_mod),
-	 .b_mod(b_mod),
-	 .div_flag(div_flag),
-	 .curr_kernel(curr_kernel),
+	 .vga_ready(vga_ready)
 	
 	 //outputs
     .rdaddress(rdaddress),
@@ -210,38 +205,6 @@ vga_scaled vga_init(
   display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
 
   //------------ MICROPHONE-END --------------//
-
-  //------------ PIXEL_FILTER-START ----------//
-
-  logic [5:0] r_mod;
-  logic [5:0] g_mod;
-  logic [5:0] b_mod;
-  logic div_flag;
-
-  pixel_filt u_pixel_filter (
-    .clk(clk_50),
-    .filter_number(filter_number),
-    .audio_pitch(pitch_output.data),
-    .r_mod(r_mod),
-    .g_mod(g_mod),
-    .b_mod(b_mod),
-	 .div_flag(div_flag)
-  );
-
-  //------------ PIXEL_FILTER-END ------------//
-  
-  //------------ CONVOLUTION_FILTER-START ----//
-  
-  logic [6:0] curr_kernel [24:0];
-  
-  convolution_filt u_convolution_filt (
-    .clk(clk_50),
-	 .filter_number(filter_number),
-	 .audio_pitch(pitch_output.data),
-	 .curr_kernel(curr_kernel)
-  );
-  
-  //------------ CONVOLUTION_FILTER-END ------//
 
   //------------ FSM & LCD START -------------//
   

@@ -13,16 +13,7 @@ module image_processor #(
     output reg [ADDR_BITS-1:0] rdaddress, // Address to read from BRAM
     output reg vga_start,
     output reg vga_end,
-    output reg [30:0] vga_data,
-	 
-	 input wire [5:0] r_mod,
-	 input wire [5:0] g_mod,
-	 input wire [5:0] b_mod,
-	 input wire    div_flag,
-	 
-	 input wire signed [6:0] curr_kernel [24:0]
-	 
-	 // TODO - need to add a valid signal output
+    output reg [30:0] vga_data
 );
     // Image coordinate registers
     int col = 0, col_old = 0;
