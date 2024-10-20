@@ -37,6 +37,8 @@ module integration_top_level (
 		input   AUD_BCLK,
 		output  AUD_XCK,
 		input   AUD_ADCLRCK,
+		input   IRDA_RXD,
+
 
 		inout  wire [7:0] LCD_DATA,    // external_interface.DATA
 		output wire       LCD_ON,      //                   .ON
@@ -198,6 +200,22 @@ module integration_top_level (
   );
   
   //------------ Direction Detection End ---------//
+  
+  //------------ IR Reader Begin ---------//
+  
+  wire [31:0] hex_data; 
+
+  
+  
+  IR_RECEIVE IR_Reader(
+					.iCLK(CLOCK_50), 
+					.iRST_n(reset),        
+					.iIRDA(IRDA_RXD),	// in: IR sensor from the board					
+					.oDATA_READY(1),	// in: Ready for reading
+					.oDATA(hex_data) 	// out: Unique button signature      
+					);
+					
+  //------------ IR Reader End ---------//
   
   //------------ Ultrasonic Sensor Begin ---------//
   
