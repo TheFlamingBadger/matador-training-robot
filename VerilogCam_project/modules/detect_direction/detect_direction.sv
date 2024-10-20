@@ -5,8 +5,8 @@ module detect_direction #(
     parameter NUM_DIVISIONS = 3,                    // Number of divisions
     parameter FOV = 25,                             // Camera FOV in degrees
     parameter MAX_SUM = 12249600,                   // 0+1+2+...+319 = 51040, 51040*240=12249600
-    parameter HIGH_THRESHOLD = 11,                  // The red min detection threshold
-    parameter LOW_THRESHOLD = 6                     // The blue-green detection max threshold
+    parameter HIGH_THRESHOLD = 6,                  // The red min detection threshold
+    parameter LOW_THRESHOLD = 4                     // The blue-green detection max threshold
 )(
     input wire                  clk,                // 50 MHz clock signal
     input wire [ADDR_BITS-1:0]  rdaddress,          // Flag to reset to beginning of frame
@@ -37,7 +37,7 @@ module detect_direction #(
 
         end
 
-        if( rddata[11:8] > HIGH_THRESHOLD && rddata[7:4] < LOW_THRESHOLD && rddata[3:0] < LOW_THRESHOLD ) begin: count_pixel
+        if( rddata[11:8] > 3 && rddata[7:4] < rddata[11:8] - 3 && rddata[3:0] < rddata[11:8] - 3 ) begin: count_pixel
 
             column_sum <= column_sum + ( rdaddress % IMAGE_WIDTH );
             pixel_count <= pixel_count + 1;

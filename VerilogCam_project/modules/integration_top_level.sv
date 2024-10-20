@@ -69,27 +69,54 @@ module integration_top_level (
 	  .c1(clk_25_vga)
 	);
 	
-	//------------ Image Processor Start ---------//
-	 
+	assign resend = ~KEY[0];
+	
+	//------------ Camera Code Start -------------//
+	
+	ov7670_controller Inst_ov7670_controller(
+    .clk(clk_50_camera),
+	 .resend(resend),
+	 .config_finished(led_config_finished),
+	 .sioc(ov7670_sioc),
+	 .siod(ov7670_siod),
+	 .reset(ov7670_reset),
+	 .pwdn(ov7670_pwdn),
+	 .xclk(ov7670_xclk));
+
+	ov7670_capture Inst_ov7670_capture(
+	  .pclk(ov7670_pclk),
+	  .vsync(ov7670_vsync),
+	  .href(ov7670_href),
+	  .d(ov7670_data),
+	  .addr(wraddress),
+	  .dout(wrdata),
+	  .we(wren));
+
+	frame_buffer Inst_frame_buffer(
+	  .rdaddress(rdaddress),
+	  .rdclock(clk_25_vga),
+	  .q(rddata),
+	  .wrclock(ov7670_pclk),
+	  .wraddress(wraddress[16:0]),
+	  .data(wrdata),
+	  .wren(wren));
+	  
   image_processor image_inst (
-    
+ 
 	 //inputs
 	 .clk_25_vga(clk_25_vga),
-    .resend(resend),
-    .rddata(rddata),
+	 .resend(resend),
+	 .rddata(rddata),
 	 .vga_ready(vga_ready),
 	
 	 //outputs
-    .rdaddress(rdaddress),
-    .vga_start(vga_start),
-    .vga_end(vga_end),
-    .vga_data(vga_data)
+	 .rdaddress(rdaddress),
+	 .vga_start(vga_start),
+	 .vga_end(vga_end),
+	 .vga_data(vga_data)
   );
   
-  //------------ Image Processor End -----------//
-
-
-	vga_scaled vga_init(
+  vga_scaled vga_init(
 	  .clk_clk(clk_25_vga),                                         		//                                       clk.clk
 	  .reset_reset_n(1'b1), // btn_resend                                  				//                                     reset.reset_n
 	  .video_scaler_0_avalon_scaler_sink_startofpacket(vga_start), 		//         video_scaler_0_avalon_scaler_sink.startofpacket
@@ -107,6 +134,8 @@ module integration_top_level (
 	  .video_vga_controller_0_external_interface_G(vga_g),     			//                                          .G
 	  .video_vga_controller_0_external_interface_B(vga_b)      			//                                          .B
 	);
+	
+	//------------ Camera Code End ---------------//
 	
 	//------------ Microphone Start ----------------//
   
@@ -145,10 +174,6 @@ module integration_top_level (
   display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
 
   //------------ Microphone End ------------------//
-
-	// take the inverted push button because KEY0 on DE2-115 board generates
-	// a signal 111000111; with 1 with not pressed and 0 when pressed/pushed;
-	assign resend =  0;
   
   //------------ Direction Detection Start -------//
   
@@ -259,7 +284,7 @@ module integration_top_level (
 		.average_distance   (avg_distance),			// in: from ultrasonic
 		.pitch              (pitch_output.data),	// in: from microphone
 		.amplitude          (magnitude),				// in: from microphone
-		.drive_command      (),				// out: to command translator
+		.drive_command      (),				// out: to command translator - TODO: connect to command translator
 		.valid              (valid)					// out: to command translator
 	);
   
@@ -271,7 +296,7 @@ module integration_top_level (
   logic uart_ready;
   logic [7:0] ascii_out;
   
-  assign command = 3'd3;
+  assign command = 3'd0;
   
   command_translator command_translator_inst (
 		.clk       (clk_50),
