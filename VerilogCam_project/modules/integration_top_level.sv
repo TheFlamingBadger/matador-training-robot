@@ -186,7 +186,7 @@ module integration_top_level (
   reg [2:0]			  		command;
   reg 						tx_ready;
   
-  assign LEDG = avg_direction;
+  assign LEDG[7:1] = avg_direction;
 	 
 	 
 //  address_generator address_generator_inst (

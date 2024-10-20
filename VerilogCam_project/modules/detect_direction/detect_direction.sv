@@ -29,16 +29,28 @@ module detect_direction #(
         average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : 0;
 
         if( rdaddress == 0 ) begin: reset_counters
+		  
+//				average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : 0;
 
 				direction_q <= ( FOV * average_column ) / ( IMAGE_WIDTH - 1 );
-            column_sum <= 0;
-            pixel_count <= 0;
-
+				
+//				if (pixel_count > 1) begin
+//					direction_q <= 10;
+//				end
+//				else begin
+//					direction_q <= 2;
+//				end
         end
+		  else if ( rdaddress == 1) begin
+			column_sum <= 0;
+			pixel_count <= 0;
+		  end
 		  else if( rddata[11:8] > THRESHOLD && rddata[7:4] < rddata[11:8] - THRESHOLD && rddata[3:0] < rddata[11:8] - THRESHOLD ) begin: count_pixel
 
+//				direction_q <= 4;
             column_sum <= column_sum + ( rdaddress % IMAGE_WIDTH );
             pixel_count <= pixel_count + 1;
+//				pixel_count <= 6;
             
         end
 		  else begin
