@@ -317,5 +317,43 @@ module integration_top_level (
   );
   
   //------------ Command Translator End ----------//
+
+  //------------ LCD Display Start ---------------//
+
+  lcd_display (
+		 .clk(clk_50),
+		 .reset(resend),
+		 .filter_number(command),
+		 // Avalon-MM signals to LCD_Controller slave
+		 .address(address),          // Address line for LCD controller
+		 .chipselect(chipselect),
+		 .byteenable(),
+		 .read(),
+		 .write(write),
+		 .waitrequest(waitrequest),
+		 .readdata(),
+		 .response(),
+		 .writedata(writedata)
+	);
+
+	char_display u_char_display (
+		.clk         (clk_50),    //                clk.clk
+		.reset       (resend),   //              reset.reset
+		.address     (address),     //   avalon_lcd_slave.address
+		.chipselect  (chipselect),  //                   .chipselect
+		.read        (read),        //                   .read
+		.write       (write),       //                   .write
+		.writedata   (writedata),   //                   .writedata
+		.readdata    (readdata),    //                   .readdata
+		.waitrequest (waitrequest), //                   .waitrequest
+		.LCD_DATA    (LCD_DATA),    // external_interface.export
+		.LCD_ON      (LCD_ON),      //                   .export
+		.LCD_BLON    (LCD_BLON),    //                   .export
+		.LCD_EN      (LCD_EN),      //                   .export
+		.LCD_RS      (LCD_RS),      //                   .export
+		.LCD_RW      (LCD_RW)       //                   .export
+	);
+
+  //------------ LCD Display End -----------------//
   
 endmodule
