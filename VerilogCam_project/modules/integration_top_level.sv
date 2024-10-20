@@ -74,6 +74,8 @@ module integration_top_level (
 	
 	//------------ Camera Code Start -------------//
 	
+	
+	
 	ov7670_controller Inst_ov7670_controller(
     .clk(clk_50_camera),
 	 .resend(resend),
@@ -327,6 +329,14 @@ module integration_top_level (
   //------------ Command Translator End ----------//
 
   //------------ LCD Display Start ---------------//
+  
+  	wire       address;     //   avalon_lcd_slave.address
+ 	wire       chipselect;  //                   .chipselect
+	wire       read;        //                   .read
+	wire       write;       //                   .write
+	wire [7:0] writedata;   //                   .writedata
+	wire [7:0] readdata;    //                   .readdata
+	wire       waitrequest; //                   .waitrequest
 
   lcd_display (
 		 .clk(clk_50),
