@@ -14,27 +14,27 @@ module drive_logic #(
 	output                     valid
 );
 	
-	logic command;
+	logic command = 0;
 	
 	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
 	
 	always_ff begin
-		if (amplitude > AMPLITUDE_THRESHOLD) begin
-			if (pitch < MAX_CLAP_PITCH) begin
-				command <= 0;
-			end
-			else if (pitch > MIN_WHISTLE_PITCH) begin
-				command <= 1;
-			end
-		end
+//		if (amplitude > AMPLITUDE_THRESHOLD) begin
+//			if (pitch < MAX_CLAP_PITCH) begin
+//				command <= 0;
+//			end
+//			else if (pitch > MIN_WHISTLE_PITCH) begin
+//				command <= 1;
+//			end
+//		end
 		
 		if (detected_direction < 6) begin
 			next_state <= Fast_left;
 		end
-		else if (detected_direction < 12) begin
+		else if (detected_direction < 11) begin
 			next_state <= Left;
 		end
-		else if (detected_direction < 13) begin
+		else if (detected_direction < 14) begin
 			next_state <= Straight;
 		end
 		else if (detected_direction < 19) begin
@@ -44,7 +44,9 @@ module drive_logic #(
 			next_state <= Fast_right;
 		end
 		
-		current_state <= command ? next_state : Stop;
+//		current_state <= command ? next_state : Stop;
+		current_state <= next_state;
+
 	end
 	
 	always_comb begin

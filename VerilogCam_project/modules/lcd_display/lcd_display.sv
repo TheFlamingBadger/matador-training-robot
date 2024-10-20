@@ -3,7 +3,7 @@ import lcd_inst_pkg::*;
 module lcd_display (
     input  logic clk,
     input  logic reset,
-	input  logic [2:0] command,
+	 input  logic [2:0] command,
     // Avalon-MM signals to LCD_Controller slave:
     output logic address,
     output logic chipselect,

@@ -183,9 +183,7 @@ module integration_top_level (
   parameter FOV = 25;
   reg [$clog2(FOV):0] 	direction;
   reg [$clog2(FOV):0] 	avg_direction;
-  reg [2:0]			  		command;
-  reg 						tx_ready;
-  
+
   assign LEDG[7:1] = avg_direction;
 	 
 	 
@@ -285,7 +283,9 @@ module integration_top_level (
   
   //------------ Drive Logic Begin ---------------//
   
-  logic valid;
+  logic     valid;
+  wire [2:0] command;
+
   
   drive_logic drive_logic_inst (
 		.clk                (clk),
@@ -294,7 +294,7 @@ module integration_top_level (
 		.pitch              (pitch_output.data),	// in: from microphone
 		.amplitude          (magnitude),				// in: from microphone
 		.ir_command			  (hex_data),
-		.drive_command      (),				// out: to command translator - TODO: connect to command translator
+		.drive_command      (command),				// out: to command translator - TODO: connect to command translator
 		.valid              (valid)					// out: to command translator
 	);
   
@@ -305,8 +305,8 @@ module integration_top_level (
   logic cmd_ready;
   logic uart_ready;
   logic [7:0] ascii_out;
-  
-  assign command = 3'd0;
+
+//  assign command = 3'd0;
   
   command_translator command_translator_inst (
 		.clk       (clk_50),
