@@ -1196,6 +1196,12 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[3]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vga_r[0]
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name VERILOG_FILE modules/char_display/synthesis/char_display.v
+set_global_assignment -name SYSTEMVERILOG_FILE modules/lcd_display/lcd_inst_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE modules/lcd_display/lcd_display.sv
 set_global_assignment -name VERILOG_FILE modules/IR_reader/pll1.v
 set_global_assignment -name QIP_FILE modules/IR_reader/pll1.qip
 set_global_assignment -name VERILOG_FILE modules/IR_reader/IR_RECEIVE_Terasic.v
@@ -1265,7 +1271,4 @@ set_global_assignment -name SIGNALTAP_FILE signal_tap_vga_face.stp
 set_global_assignment -name SYSTEMVERILOG_FILE modules/convolution_filt/convolution_filt.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/1d_convolution/oned_convolution_filt_tb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/1d_convolution/oned_convolution_filt.sv
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

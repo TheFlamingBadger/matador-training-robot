@@ -48,6 +48,7 @@ module integration_top_level (
 		output wire       LCD_RW       //                   .RW		
 );
 
+
 // DE2-115 board has an Altera Cyclone V E, which has ALTPLL's'
 	wire clk_50_camera;
 	wire clk_25_vga;
@@ -179,10 +180,11 @@ module integration_top_level (
   
   parameter FOV = 25;
   reg [$clog2(FOV):0] 	direction;
+  reg [$clog2(FOV):0] 	avg_direction;
   reg [2:0]			  		command;
   reg 						tx_ready;
   
-  assign LEDG = direction;
+  assign LEDG = avg_direction;
 	 
 	 
 //  address_generator address_generator_inst (
@@ -199,13 +201,18 @@ module integration_top_level (
 		.direction 	(direction)		// out: to drive logic
   );
   
+  oned_convolution_filt direction_oned (
+		.clk(clk_50),
+		.reset(reset),
+		.distance(direction),
+		.avg_out(avg_direction)
+	);
+  
   //------------ Direction Detection End ---------//
   
   //------------ IR Reader Begin ---------//
   
   wire [31:0] hex_data; 
-
-  
   
   IR_RECEIVE IR_Reader(
 					.iCLK(CLOCK_50), 
@@ -263,7 +270,7 @@ module integration_top_level (
 	);
 	  
 
-	oned_convolution_filt (
+	oned_convolution_filt ultra_oned (
 		.clk(clk_50),
 		.reset(reset),
 		.distance(raw_distance),
@@ -280,10 +287,11 @@ module integration_top_level (
   
   drive_logic drive_logic_inst (
 		.clk                (clk),
-		.detected_direction (direction),				// in: from detect direction
+		.detected_direction (avg_direction),		// in: from detect direction
 		.average_distance   (avg_distance),			// in: from ultrasonic
 		.pitch              (pitch_output.data),	// in: from microphone
 		.amplitude          (magnitude),				// in: from microphone
+		.ir_command			  (hex_data),
 		.drive_command      (),				// out: to command translator - TODO: connect to command translator
 		.valid              (valid)					// out: to command translator
 	);
@@ -323,7 +331,7 @@ module integration_top_level (
   lcd_display (
 		 .clk(clk_50),
 		 .reset(resend),
-		 .filter_number(command),
+		 .command(command),
 		 // Avalon-MM signals to LCD_Controller slave
 		 .address(address),          // Address line for LCD controller
 		 .chipselect(chipselect),

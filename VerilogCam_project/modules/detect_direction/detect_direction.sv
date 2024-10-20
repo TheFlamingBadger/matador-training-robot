@@ -5,44 +5,48 @@ module detect_direction #(
     parameter NUM_DIVISIONS = 3,                    // Number of divisions
     parameter FOV = 25,                             // Camera FOV in degrees
     parameter MAX_SUM = 12249600,                   // 0+1+2+...+319 = 51040, 51040*240=12249600
-    parameter HIGH_THRESHOLD = 6,                  // The red min detection threshold
-    parameter LOW_THRESHOLD = 4                     // The blue-green detection max threshold
+    parameter THRESHOLD = 3                         // The red min detection threshold
 )(
-    input wire                  clk,                // 50 MHz clock signal
-    input wire [ADDR_BITS-1:0]  rdaddress,          // Flag to reset to beginning of frame
-    input wire [11:0]           rddata,             // Data read from BRAM
-    output wire [$clog2(FOV):0] direction           // Signed heading of detected object
+    input wire                   clk,               // 50 MHz clock signal
+    input wire  [ADDR_BITS-1:0]  rdaddress,         // Flag to reset to beginning of frame
+    input wire  [11:0]           rddata,            // Data read from BRAM
+    output wire [6:0]            direction          // Signed heading of detected object
 );  
 
     // Basic Logic: If pixel over threshold, add its column number a total and
     // increment a pixel counter. Then, when last pixel of frame is reached
     // calclate the average column and output the corresponding FOV heading.
 
-    logic [$clog2(FOV):0] direction_q = 12;
-    logic [$clog2(MAX_SUM)-1:0] column_sum;
-    logic [$clog2(ADDR_BITS)-1:0] pixel_count;
-    logic signed [$clog2(IMAGE_WIDTH):0] average_column;
+    logic [6:0]                   direction_q;
+    logic [$clog2(MAX_SUM)-1:0]   column_sum;
+    logic [ADDR_BITS-1:0]         pixel_count;
+    logic [$clog2(IMAGE_WIDTH):0] average_column;
 
     assign direction = direction_q;
     
     always_ff @(posedge clk) begin
 
-        average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : -1;
+        average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : 0;
 
         if( rdaddress == 0 ) begin: reset_counters
 
-            direction_q <= ( average_column >= 0) ? ( FOV * average_column ) / ( IMAGE_WIDTH - 1 ) : -1;
+				direction_q <= ( FOV * average_column ) / ( IMAGE_WIDTH - 1 );
             column_sum <= 0;
             pixel_count <= 0;
 
         end
-
-        if( rddata[11:8] > 3 && rddata[7:4] < rddata[11:8] - 3 && rddata[3:0] < rddata[11:8] - 3 ) begin: count_pixel
+		  else if( rddata[11:8] > THRESHOLD && rddata[7:4] < rddata[11:8] - THRESHOLD && rddata[3:0] < rddata[11:8] - THRESHOLD ) begin: count_pixel
 
             column_sum <= column_sum + ( rdaddress % IMAGE_WIDTH );
             pixel_count <= pixel_count + 1;
             
         end
+		  else begin
+		  
+		      column_sum <= column_sum;
+            pixel_count <= pixel_count;
+				
+		  end
     end
 	
 endmodule

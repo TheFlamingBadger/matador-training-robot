@@ -4,13 +4,14 @@ module drive_logic #(
 	parameter MIN_WHISTLE_PITCH = 12,
 	parameter FOV = 25
 	)(
-	input wire clk,
+	input wire                 clk,
 	input wire [$clog2(FOV):0] detected_direction,
-	input wire average_distance,
-	input wire [3:0] pitch,
-	input wire [3:0] amplitude,
-	output [2:0] drive_command,
-	output valid
+	input wire                 average_distance,
+	input wire [3:0]           pitch,
+	input wire [3:0]           amplitude,
+	input wire [31:0]				ir_command,
+	output [2:0]               drive_command,
+	output                     valid
 );
 	
 	logic command;
