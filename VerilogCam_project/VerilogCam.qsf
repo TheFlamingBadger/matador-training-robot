@@ -1214,17 +1214,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE modules/ultrasonic_sensor/sensor_
 set_global_assignment -name SYSTEMVERILOG_FILE modules/ultrasonic_sensor/sensor_driver.sv
 set_global_assignment -name QIP_FILE modules/ultrasonic_sensor/PLL.qip
 set_global_assignment -name SYSTEMVERILOG_FILE modules/command_translator/command_translator.sv
-set_global_assignment -name SYSTEMVERILOG_FILE modules/fsm/lcd_display.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/stream_mif/stream_mif.sv
-set_global_assignment -name QSYS_FILE modules/vga_face/vga.qsys
-set_global_assignment -name SYSTEMVERILOG_FILE modules/vga_face/vga_face.sv
-set_global_assignment -name SYSTEMVERILOG_FILE modules/pixel_filt/pixel_filt_tb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE modules/pixel_filt/pixel_filt.sv
 set_global_assignment -name QIP_FILE modules/char_display/synthesis/char_display.qip
-set_global_assignment -name VERILOG_FILE modules/fsm/synchroniser.v
-set_global_assignment -name SYSTEMVERILOG_FILE modules/fsm/lcd_inst_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE modules/fsm/filter_fsm.sv
-set_global_assignment -name VERILOG_FILE modules/fsm/debounce.v
 set_global_assignment -name SYSTEMVERILOG_FILE modules/microphone/mic/top_level.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/microphone/mic/set_audio_encoder.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/microphone/mic/mic_load.sv

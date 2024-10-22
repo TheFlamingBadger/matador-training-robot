@@ -74,7 +74,14 @@ module integration_top_level (
 	
 	//------------ Camera Code Start -------------//
 	
-	
+	address_generator address_generator_inst (
+	 .clk			   (clk_25_vga),
+	 .resend 		(resend),		// in: not connected
+	 .vga_ready    (vga_ready),	// in: vga_ready
+	 .rdaddress 	(rdaddress),	// out: to frame buffer & detect direction
+	 .vga_start    (vga_start),
+	 .vga_end      (vga_end)
+   );
 	
 	ov7670_controller Inst_ov7670_controller(
     .clk(clk_50_camera),
@@ -113,9 +120,6 @@ module integration_top_level (
 	 .vga_ready(vga_ready),
 	
 	 //outputs
-	 .rdaddress(rdaddress),
-	 .vga_start(vga_start),
-	 .vga_end(vga_end),
 	 .vga_data(vga_data)
   );
   
@@ -177,38 +181,6 @@ module integration_top_level (
   display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
 
   //------------ Microphone End ------------------//
-  
-  //------------ Direction Detection Start -------//
-  
-  parameter FOV = 25;
-  reg [$clog2(FOV):0] 	direction;
-  reg [$clog2(FOV):0] 	avg_direction;
-
-  assign LEDG[7:1] = avg_direction;
-	 
-	 
-//  address_generator address_generator_inst (
-//		.clk			(clk_50),
-//		.resend 		(resend),		// in: not connected
-//		.rdaddress 	(rdaddress)		// out: to frame buffer & detect direction
-//  );
-  
-  
-  detect_direction detect_direction_inst (
-		.clk 			(clk_50),
-		.rdaddress 	(rdaddress),	// in: from address generator
-		.rddata 		(rddata),		// in: from frame buffer
-		.direction 	(direction)		// out: to drive logic
-  );
-  
-  oned_convolution_filt direction_oned (
-		.clk(clk_50),
-		.reset(reset),
-		.distance(direction),
-		.avg_out(avg_direction)
-	);
-  
-  //------------ Direction Detection End ---------//
   
   //------------ IR Reader Begin ---------//
   
@@ -280,6 +252,30 @@ module integration_top_level (
 	assign LEDR = avg_distance;
   
   //------------ Ultrasonic Sensor End -----------//
+  
+  //------------ Direction Detection Start -------//
+  
+  parameter FOV = 25;
+  reg [$clog2(FOV):0] 	direction;
+  reg [$clog2(FOV):0] 	avg_direction;
+
+  assign LEDG[7:1] = avg_direction;
+  
+  detect_direction detect_direction_inst (
+		.clk 			(clk_50),
+		.rdaddress 	(rdaddress),	// in: from address generator
+		.rddata 		(rddata),		// in: from frame buffer
+		.direction 	(direction)		// out: to drive logic
+  );
+  
+  oned_convolution_filt direction_oned (
+		.clk(clk_50),
+		.reset(reset),
+		.distance(direction),
+		.avg_out(avg_direction)
+	);
+  
+  //------------ Direction Detection End ---------//
   
   //------------ Drive Logic Begin ---------------//
   

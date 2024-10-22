@@ -10,55 +10,10 @@ module image_processor #(
     input wire resend,
     input wire vga_ready,
 	 input wire [11:0] rddata,
-    output reg [ADDR_BITS-1:0] rdaddress, // Address to read from BRAM
     output reg vga_start,
     output reg vga_end,
     output reg [30:0] vga_data
 );
-    // Image coordinate registers
-    int col = 0, col_old = 0;
-    int row = 0, row_old = 0;
-	 
-	  // Address Generator
-    always @(posedge clk_25_vga) begin
-	 
-        if (resend) begin
-            col <= 0;
-            row <= 0;
-            rdaddress <= 0;
-        end
-		  else if (vga_ready) begin
-		  
-            // Update pixel coordinates
-            if (col >= IMAGE_WIDTH - 1) begin
-				
-                col <= 0;
-					 
-                if (row >= IMAGE_HEIGHT - 1) begin
-                    row <= 0;
-                end
-					 else begin
-                    row <= row + 1;
-                end
-            end
-				else begin
-                col <= col + 1;
-            end
-
-            row_old <= row;
-            col_old <= col;
-
-            // Provide read address to BRAM
-            rdaddress <= row * IMAGE_WIDTH + col;
-        end
-    end
-
-	 
-    // Block to detect frame start and end
-    always @(*) begin
-        vga_start = (col_old == 0 && row_old == 0) ? 1'b1 : 1'b0;
-        vga_end = (col_old == IMAGE_WIDTH - 1 && row_old == IMAGE_HEIGHT - 1) ? 1'b1 : 1'b0;
-    end
 
 	 
     // Convert processed data to VGA format
