@@ -1,9 +1,12 @@
 import lcd_inst_pkg::*;
 	
-module lcd_display (
+module lcd_display #(
+	 parameter FOV = 25                             // Camera FOV in degrees
+)(
     input  logic clk,
     input  logic reset,
 	 input  logic [2:0] command,
+	 input  logic [$clog2(FOV):0] direction,
     // Avalon-MM signals to LCD_Controller slave:
     output logic address,
     output logic chipselect,
@@ -20,20 +23,56 @@ module lcd_display (
     state_t current_state, next_state;
 
     localparam N_INSTRS = 13;
-    logic [8:0] instructions [N_INSTRS] = '{CLEAR_DISPLAY, _D, _i, _r, _e, _c, _t, _i, _o, _n, _COLON, _SPACE, _HASH};
+	 localparam CMD_IDX = 7;
+	 localparam DIR_TENS_IDX = N_INSTRS-2;
+	 localparam DIR_ONES_IDX = N_INSTRS-1;
+    logic [8:0] instructions [N_INSTRS] = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _HASH, _SPACE, _D, _r, _COLON, _HASH, _HASH};
+	 
+	 int dir_ones;
+	 int dir_tens;
+	 assign dir_ones = direction % 10;
+	 assign dir_tens = (direction - (direction % 10))/10;
     
     always_ff @(posedge clk) begin : set_command
         if(instruction_index != N_INSTRS-1) begin
             case(command)
-                0: instructions[N_INSTRS-1] = _0;
-                1: instructions[N_INSTRS-1] = _1;
-                2: instructions[N_INSTRS-1] = _2;
-                3: instructions[N_INSTRS-1] = _3;
-                4: instructions[N_INSTRS-1] = _4;
-                5: instructions[N_INSTRS-1] = _5;
-                default: instructions[N_INSTRS-1] = _HASH;
+                0: instructions[CMD_IDX] = _0;
+                1: instructions[CMD_IDX] = _1;
+                2: instructions[CMD_IDX] = _2;
+                3: instructions[CMD_IDX] = _3;
+                4: instructions[CMD_IDX] = _4;
+                5: instructions[CMD_IDX] = _5;
+                default: instructions[CMD_IDX] = _HASH;
             endcase
-		end
+				
+            case(dir_tens)
+                0: instructions[DIR_TENS_IDX] = _0;
+                1: instructions[DIR_TENS_IDX] = _1;
+                2: instructions[DIR_TENS_IDX] = _2;
+                3: instructions[DIR_TENS_IDX] = _3;
+                4: instructions[DIR_TENS_IDX] = _4;
+                5: instructions[DIR_TENS_IDX] = _5;
+					 6: instructions[DIR_TENS_IDX] = _6;
+					 7: instructions[DIR_TENS_IDX] = _7;
+					 8: instructions[DIR_TENS_IDX] = _8;
+					 9: instructions[DIR_TENS_IDX] = _9;
+                default: instructions[DIR_TENS_IDX] = _HASH;
+            endcase
+				
+				case(dir_ones)
+                0: instructions[DIR_ONES_IDX] = _0;
+                1: instructions[DIR_ONES_IDX] = _1;
+                2: instructions[DIR_ONES_IDX] = _2;
+                3: instructions[DIR_ONES_IDX] = _3;
+                4: instructions[DIR_ONES_IDX] = _4;
+                5: instructions[DIR_ONES_IDX] = _5;
+					 6: instructions[DIR_ONES_IDX] = _6;
+					 7: instructions[DIR_ONES_IDX] = _7;
+					 8: instructions[DIR_ONES_IDX] = _8;
+					 9: instructions[DIR_ONES_IDX] = _9;
+                default: instructions[DIR_ONES_IDX] = _HASH;
+            endcase
+		  end
     end
 	
 

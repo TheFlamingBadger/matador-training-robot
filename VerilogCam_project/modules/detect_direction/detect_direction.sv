@@ -17,7 +17,7 @@ module detect_direction #(
     // increment a pixel counter. Then, when last pixel of frame is reached
     // calclate the average column and output the corresponding FOV heading.
 
-    logic [6:0]                   direction_q;
+    logic [7:0]                   direction_q;
     logic [$clog2(MAX_SUM)-1:0]   column_sum;
     logic [ADDR_BITS-1:0]         pixel_count;
     logic [$clog2(IMAGE_WIDTH):0] average_column;

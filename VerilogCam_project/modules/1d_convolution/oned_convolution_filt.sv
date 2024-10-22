@@ -3,7 +3,7 @@
 module oned_convolution_filt (
     input wire clk,            // Clock signal
     input wire reset,          // Reset signal (resets buffer and output)
-    input wire [7:0] distance, // 8-bit input data
+    input wire [7:0] raw_in,   // 8-bit input data
     output reg [7:0] avg_out   // 8-bit output average
 );
 
@@ -40,14 +40,14 @@ module oned_convolution_filt (
         end else begin
             if (count < BUFFER_SIZE) begin
                 // Buffer is not yet full
-                sum <= sum + {8'b0, distance};  // Add the new distance to the sum, zero-extend distance
-                buffer[count] <= distance;
+                sum <= sum + {8'b0, raw_in};  // Add the new value to the sum, zero-extend raw_in
+                buffer[count] <= raw_in;
                 count <= count + 1;
-                avg_out <= distance;            // Output the input data until buffer is full
+                avg_out <= raw_in;            // Output the input data until buffer is full
             end else begin
                 // Buffer is full, update sum and output average
-                sum <= sum - {8'b0, buffer[idx]} + {8'b0, distance};  // Handle width mismatch by zero-extending
-                buffer[idx] <= distance;              // Replace oldest value with new data
+                sum <= sum - {8'b0, buffer[idx]} + {8'b0, raw_in};  // Handle width mismatch by zero-extending
+                buffer[idx] <= raw_in;              // Replace oldest value with new data
                 idx <= (idx + 1) % BUFFER_SIZE;       // Update index (circular buffer)
 
                 // Averaging (Equivalent to Applying Kernel Weights):

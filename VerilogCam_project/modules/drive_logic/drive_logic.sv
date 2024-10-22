@@ -6,7 +6,7 @@ module drive_logic #(
 	)(
 	input wire                 clk,
 	input wire [$clog2(FOV):0] detected_direction,
-	input wire                 average_distance,
+	input wire [7:0]           average_distance,
 	input wire [3:0]           pitch,
 	input wire [3:0]           amplitude,
 	input wire [31:0]				ir_command,

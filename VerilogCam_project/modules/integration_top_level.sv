@@ -245,7 +245,7 @@ module integration_top_level (
 	oned_convolution_filt ultra_oned (
 		.clk(clk_50),
 		.reset(reset),
-		.distance(raw_distance),
+		.raw_in(raw_distance),
 		.avg_out(avg_distance)
 	);
 	
@@ -258,8 +258,6 @@ module integration_top_level (
   parameter FOV = 25;
   reg [$clog2(FOV):0] 	direction;
   reg [$clog2(FOV):0] 	avg_direction;
-
-  assign LEDG[7:1] = avg_direction;
   
   detect_direction detect_direction_inst (
 		.clk 			(clk_50),
@@ -271,9 +269,11 @@ module integration_top_level (
   oned_convolution_filt direction_oned (
 		.clk(clk_50),
 		.reset(reset),
-		.distance(direction),
+		.raw_in(direction),
 		.avg_out(avg_direction)
 	);
+	
+  assign LEDG[7:1] = avg_direction;
   
   //------------ Direction Detection End ---------//
   
@@ -338,6 +338,7 @@ module integration_top_level (
 		 .clk(clk_50),
 		 .reset(resend),
 		 .command(command),
+		 .direction(avg_direction),
 		 // Avalon-MM signals to LCD_Controller slave
 		 .address(address),          // Address line for LCD controller
 		 .chipselect(chipselect),
