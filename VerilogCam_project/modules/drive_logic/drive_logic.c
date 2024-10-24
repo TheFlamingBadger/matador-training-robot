@@ -49,7 +49,7 @@ int calculate_left_speed( detected_direction )
 }
 
 
-int calculate_left_speed( detected_direction )
+int calculate_right_speed( detected_direction )
 {
     return ( SPEED_SCALE_FACTOR * ( MAX_DIRECTION - detected_direction )) / MAX_DIRECTION;
 }
