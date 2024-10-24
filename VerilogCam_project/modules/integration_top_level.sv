@@ -313,7 +313,6 @@ module integration_top_level (
   
   uart_tx uart_tx_inst (
 		.clk (clk_50),
-//		.data_tx (),	// in: from command translator
 		.data_tx (ascii_out),	// in: from command translator
 		.valid (cmd_ready),		// in: from command translator
 		.uart_out(GPIO[5]),		// out: to base
