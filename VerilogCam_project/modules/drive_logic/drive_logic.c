@@ -66,6 +66,7 @@ void drive_logic( int clk, int no_red, int detected_direction, int average_dista
     
     switch( ir_command )
     {
+        // need to introduce a way to clear last command so that it's not continuously using the last received command
         case PLAY_PAUSE:    pause = !pause; break;
         case CHANNEL_UP:    increment_follow_dist( &follow_distance ); break;
         case CHANNEL_DOWN:  decrement_follow_dist( &follow_distance ); break;
