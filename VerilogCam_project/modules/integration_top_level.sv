@@ -299,21 +299,25 @@ module integration_top_level (
   
   logic cmd_ready;
   logic uart_ready;
+  logic [5:0] left_speed = 6'b10;
+  logic [5:0] right_speed = 6'b10;
   logic [7:0] ascii_out;
   
   command_translator command_translator_inst (
-		.clk       (clk_50),
-		.command   (command),   	// in: from drive logic
-		.valid     (valid),			// in: from drive logic
-		.uart_ready(uart_ready),	// in: from UART
-		.ascii_out (ascii_out), 	// out: to UART
-		.cmd_ready (cmd_ready)  	// out: to UART
+		.clk       	(clk_50),
+		.left_speed	(left_speed),  // in: from drive logic
+		.right_speed(right_speed), // in: from drive logic
+		.valid     	(valid),			// in: from drive logic
+		.uart_ready	(uart_ready),	// in: from UART
+		.ascii_out 	(ascii_out), 	// out: to UART
+		.cmd_ready 	(cmd_ready)  	// out: to UART
 	);
   
+  logic [7:0] test_ascii = 8'h40;
   
   uart_tx uart_tx_inst (
 		.clk (clk_50),
-		.data_tx (ascii_out),	// in: from command translator
+		.data_tx (test_ascii),	// in: from command translator
 		.valid (cmd_ready),		// in: from command translator
 		.uart_out(GPIO[5]),		// out: to base
 		.tx_ready(uart_ready)	// out: to command translator
@@ -335,7 +339,7 @@ module integration_top_level (
 		 .clk(clk_50),
 		 .reset(measure_pulse),
 		 .command(command),
-		 .direction(avg_direction),
+		 .direction(left_speed),
 		 // Avalon-MM signals to LCD_Controller slave
 		 .address(address),          // Address line for LCD controller
 		 .chipselect(chipselect),

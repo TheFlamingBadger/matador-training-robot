@@ -5,7 +5,8 @@
 // input wire [3:0]            average_distance,    4
 // input wire [3:0]            pitch,               3
 // input wire [3:0]            amplitude,           3
-// input wire [31:0]		   ir_command,          2*
+// input wire [31:16]		   ir_command,          16
+
 // output [5:0]                left_wheel_speed,    6
 // output [5:0]                right_wheel_speed,   6
 // output                      valid                1

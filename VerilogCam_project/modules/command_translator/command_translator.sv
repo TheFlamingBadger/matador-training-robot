@@ -1,48 +1,93 @@
 module command_translator (
-    input           clk,
-    input     [2:0] command,
-    input           valid,
-	 input 			  uart_ready,
-    output logic [7:0] ascii_out,  // ASCII output for UART transmission
-    output logic      cmd_ready
+    input           			clk,
+    input     		[5:0] 	left_speed, // 0-50 left speed (maps to 0-0.5)
+	 input     		[5:0] 	right_speed,// 0-50 right speed (maps to 0-0.5)
+    input           			valid,
+	 input 			  			uart_ready,
+    output logic 	[7:0] 	ascii_out,  // ASCII output for UART transmission
+    output logic      		cmd_ready
 );
     // Define a fixed-size byte array to hold the JSON command
-    logic [7:0] json_command[0:27];  // Adjust size as needed
-    int command_length;
+    int 			 command_length = 28;
+	 logic [7:0] json_command [0:27];
+	 
+	 logic [7:0] left_hundreths;
+	 logic [7:0] right_hundreths;
+	 logic [7:0] left_tenths;
+	 logic [7:0] right_tenths;
+	 
+	 localparam L_TENTH_INDEX 		= 14;
+	 localparam L_HUNDREDTHS_INDEX 	= 15;
+	 localparam R_TENTH_INDEX 		= 23;
+	 localparam R_HUNDREDTHS_INDEX	= 24;
+	 localparam _NEW_LINE = 8'h0a;
 
-    always_comb begin 
+    always_comb begin
+	 
+		  // Command syntax: {"T":0,"L":00.00,"R":00.00}
+			
+		  json_command = '{_OPEN_BRACE, _DOUBLE_QUOTE, _T, _DOUBLE_QUOTE, _COLON, _1, _COMMA,
+								 _DOUBLE_QUOTE, _L, _DOUBLE_QUOTE, _COLON, _MINUS, _0, _PERIOD, _0, _0, _COMMA,
+								 _DOUBLE_QUOTE, _R, _DOUBLE_QUOTE, _COLON, _MINUS, _0, _PERIOD, _0, _0, _CLOSE_BRACE, _NEW_LINE};
+	 
         // Construct JSON string based on command
-			case(command)
-				 3'd0: begin
-					  // STOP - {"T":0,"L":00.00,"R":00.00}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
-				 end
-				 3'd1: begin
-				     // Hard Left - {"T":1,"L":-0.50,"R":-0.20}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
-				 end
-				 3'd2: begin
-				     // Left - {"T":1,"L":-0.25,"R":-0.10}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a};
-				 end
-				 3'd3: begin
-				     // Straight - {"T":1,"L":-0.25,"R":-0.25}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a};
-				 end
-				 3'd4: begin
-				     // Right - {"T":1,"L":-0.10,"R":-0.25}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a};
-				 end
-				 3'd5: begin
-				     // Hard Right - {"T":1,"L":-0.20,"R":-0.50}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a};
-				 end
-				 default: begin
-				     // STOP - {"T":0,"L":00.00,"R":00.00}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
-				 end
-			endcase
-			command_length = 28;  // Total length of the command
+		  left_hundreths  = (left_speed % 10);
+		  right_hundreths = (right_speed % 10);
+		  left_tenths 	   = (( left_speed - ( left_speed % 10 )) / 10 );
+		  right_tenths    = (( right_speed - ( right_speed % 10 )) / 10 );
+		  
+		  case(left_tenths)
+				0: json_command[L_TENTH_INDEX] = _0;
+				1: json_command[L_TENTH_INDEX] = _1;
+				2: json_command[L_TENTH_INDEX] = _2;
+				3: json_command[L_TENTH_INDEX] = _3;
+				4: json_command[L_TENTH_INDEX] = _4;
+				5: json_command[L_TENTH_INDEX] = _5;
+				6: json_command[L_TENTH_INDEX] = _6;
+				7: json_command[L_TENTH_INDEX] = _7;
+				8: json_command[L_TENTH_INDEX] = _8;
+				9: json_command[L_TENTH_INDEX] = _9;
+		  endcase
+				
+		  case(right_tenths)
+				0: json_command[R_TENTH_INDEX] = _0;
+				1: json_command[R_TENTH_INDEX] = _1;
+				2: json_command[R_TENTH_INDEX] = _2;
+				3: json_command[R_TENTH_INDEX] = _3;
+				4: json_command[R_TENTH_INDEX] = _4;
+				5: json_command[R_TENTH_INDEX] = _5;
+				6: json_command[R_TENTH_INDEX] = _6;
+				7: json_command[R_TENTH_INDEX] = _7;
+				8: json_command[R_TENTH_INDEX] = _8;
+				9: json_command[R_TENTH_INDEX] = _9;
+		  endcase
+			
+		  case(left_hundreths)
+				0: json_command[L_HUNDREDTHS_INDEX] = _0;
+				1: json_command[L_HUNDREDTHS_INDEX] = _1;
+				2: json_command[L_HUNDREDTHS_INDEX] = _2;
+				3: json_command[L_HUNDREDTHS_INDEX] = _3;
+				4: json_command[L_HUNDREDTHS_INDEX] = _4;
+				5: json_command[L_HUNDREDTHS_INDEX] = _5;
+				6: json_command[L_HUNDREDTHS_INDEX] = _6;
+				7: json_command[L_HUNDREDTHS_INDEX] = _7;
+				8: json_command[L_HUNDREDTHS_INDEX] = _8;
+				9: json_command[L_HUNDREDTHS_INDEX] = _9;
+		  endcase
+			
+		  case(right_hundreths)
+				0: json_command[R_HUNDREDTHS_INDEX] = _0;
+				1: json_command[R_HUNDREDTHS_INDEX] = _1;
+				2: json_command[R_HUNDREDTHS_INDEX] = _2;
+				3: json_command[R_HUNDREDTHS_INDEX] = _3;
+				4: json_command[R_HUNDREDTHS_INDEX] = _4;
+				5: json_command[R_HUNDREDTHS_INDEX] = _5;
+				6: json_command[R_HUNDREDTHS_INDEX] = _6;
+				7: json_command[R_HUNDREDTHS_INDEX] = _7;
+				8: json_command[R_HUNDREDTHS_INDEX] = _8;
+				9: json_command[R_HUNDREDTHS_INDEX] = _9;
+		  endcase
+		 
     end
 
     int i = 0;
