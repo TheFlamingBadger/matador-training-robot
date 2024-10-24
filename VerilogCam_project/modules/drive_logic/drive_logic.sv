@@ -5,6 +5,7 @@ module drive_logic #(
 	parameter FOV = 25
 	)(
 	input wire                 clk,
+	input wire 						no_red,
 	input wire [$clog2(FOV):0] detected_direction,
 	input wire [7:0]           average_distance,
 	input wire [3:0]           pitch,
@@ -27,22 +28,25 @@ module drive_logic #(
 //				command <= 1;
 //			end
 //		end
-		
-		if (detected_direction < 6) begin
-			next_state <= Fast_left;
+		if( no_red ) begin
+			next_state <= Stop;
 		end
-		else if (detected_direction < 11) begin
+//		else if (detected_direction < 6) begin
+//			next_state <= Fast_left;
+//		end
+		else if (detected_direction < 8) begin
 			next_state <= Left;
 		end
-		else if (detected_direction < 14) begin
+		else if (detected_direction < 16) begin
 			next_state <= Straight;
 		end
-		else if (detected_direction < 19) begin
+//		else if (detected_direction < 19) begin
+		else begin
 			next_state <= Right;
 		end
-		else begin
-			next_state <= Fast_right;
-		end
+//		else begin
+//			next_state <= Fast_right;
+//		end
 		
 //		current_state <= command ? next_state : Stop;
 		current_state <= next_state;

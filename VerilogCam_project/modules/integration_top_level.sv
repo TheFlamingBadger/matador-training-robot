@@ -112,34 +112,30 @@ module integration_top_level (
 	  .wren(wren));
 	  
   image_processor image_inst (
- 
-	 //inputs
 	 .clk_25_vga(clk_25_vga),
-	 .resend(resend),
-	 .rddata(rddata),
-	 .vga_ready(vga_ready),
-	
-	 //outputs
-	 .vga_data(vga_data)
+	 .resend(resend),				// in:
+	 .rddata(rddata),				// in: 
+	 .vga_ready(vga_ready),		// in: from vga
+	 .vga_data(vga_data)			// out: to vga
   );
   
   vga_scaled vga_init(
 	  .clk_clk(clk_25_vga),                                         		//                                       clk.clk
-	  .reset_reset_n(1'b1), // btn_resend                                  				//                                     reset.reset_n
+	  .reset_reset_n(1'b1), // btn_resend                                //                                     reset.reset_n
 	  .video_scaler_0_avalon_scaler_sink_startofpacket(vga_start), 		//         video_scaler_0_avalon_scaler_sink.startofpacket
 	  .video_scaler_0_avalon_scaler_sink_endofpacket(vga_end),   			//                                          .endofpacket
-	  .video_scaler_0_avalon_scaler_sink_valid(1'b1),   //  sink_value???                                           .valid
+	  .video_scaler_0_avalon_scaler_sink_valid(1'b1),                    //  sink_value                              .valid
 	  .video_scaler_0_avalon_scaler_sink_ready(vga_ready),         		//                                          .ready
 	  .video_scaler_0_avalon_scaler_sink_data(vga_data),         			//                                          .data
 	//		.video_scaler_0_avalon_scaler_sink_data(rddata), 
 	  .video_vga_controller_0_external_interface_CLK(vga_CLK),   			// video_vga_controller_0_external_interface.CLK
 	  .video_vga_controller_0_external_interface_HS(vga_hsync),    		//                                          .HS
 	  .video_vga_controller_0_external_interface_VS(vga_vsync),    		//                                          .VS
-	  .video_vga_controller_0_external_interface_BLANK(vga_blank_N), 	//                                          .BLANK
+	  .video_vga_controller_0_external_interface_BLANK(vga_blank_N), 	   //                                          .BLANK
 	  .video_vga_controller_0_external_interface_SYNC(vga_sync_N),  		//                                          .SYNC
-	  .video_vga_controller_0_external_interface_R(vga_r),     			//                                          .R
-	  .video_vga_controller_0_external_interface_G(vga_g),     			//                                          .G
-	  .video_vga_controller_0_external_interface_B(vga_b)      			//                                          .B
+	  .video_vga_controller_0_external_interface_R(vga_r),     			   //                                          .R
+	  .video_vga_controller_0_external_interface_G(vga_g),     			   //                                          .G
+	  .video_vga_controller_0_external_interface_B(vga_b)      			   //                                          .B
 	);
 	
 	//------------ Camera Code End ---------------//
@@ -263,7 +259,8 @@ module integration_top_level (
 		.clk 			(clk_50),
 		.rdaddress 	(rdaddress),	// in: from address generator
 		.rddata 		(rddata),		// in: from frame buffer
-		.direction 	(direction)		// out: to drive logic
+		.direction 	(direction),	// out: to drive logic
+		.no_red		(no_red)			// out: to drive logic
   );
   
   oned_convolution_filt direction_oned (
@@ -279,18 +276,20 @@ module integration_top_level (
   
   //------------ Drive Logic Begin ---------------//
   
-  logic     valid;
+  logic valid;
+  logic no_red;
   wire [2:0] command;
 
   
   drive_logic drive_logic_inst (
-		.clk                (clk),
+		.clk                (clk_50),
+		.no_red				  (no_red),		         // in: from detect direction
 		.detected_direction (avg_direction),		// in: from detect direction
 		.average_distance   (avg_distance),			// in: from ultrasonic
 		.pitch              (pitch_output.data),	// in: from microphone
 		.amplitude          (magnitude),				// in: from microphone
-		.ir_command			  (hex_data),
-		.drive_command      (command),				// out: to command translator - TODO: connect to command translator
+		.ir_command			  (hex_data),				// in: from ir receiver
+		.drive_command      (command),				// out: to command translator
 		.valid              (valid)					// out: to command translator
 	);
   
@@ -301,23 +300,22 @@ module integration_top_level (
   logic cmd_ready;
   logic uart_ready;
   logic [7:0] ascii_out;
-
-//  assign command = 3'd0;
   
   command_translator command_translator_inst (
 		.clk       (clk_50),
-		.command   (command),   // in: from drive logic
-		.valid     (valid),		// in: from drive logic
-		.uart_ready(uart_ready),// in: from UART
-		.ascii_out (ascii_out), // out: to UART
-		.cmd_ready (cmd_ready)  // out: to UART
+		.command   (command),   	// in: from drive logic
+		.valid     (valid),			// in: from drive logic
+		.uart_ready(uart_ready),	// in: from UART
+		.ascii_out (ascii_out), 	// out: to UART
+		.cmd_ready (cmd_ready)  	// out: to UART
 	);
   
   
   uart_tx uart_tx_inst (
 		.clk (clk_50),
+//		.data_tx (),	// in: from command translator
 		.data_tx (ascii_out),	// in: from command translator
-		.valid (cmd_ready),		   // in: from command translator
+		.valid (cmd_ready),		// in: from command translator
 		.uart_out(GPIO[5]),		// out: to base
 		.tx_ready(uart_ready)	// out: to command translator
   );
@@ -336,7 +334,7 @@ module integration_top_level (
 
   lcd_display (
 		 .clk(clk_50),
-		 .reset(resend),
+		 .reset(measure_pulse),
 		 .command(command),
 		 .direction(avg_direction),
 		 // Avalon-MM signals to LCD_Controller slave
@@ -352,8 +350,8 @@ module integration_top_level (
 	);
 
 	char_display u_char_display (
-		.clk         (clk_50),    //                clk.clk
-		.reset       (resend),   //              reset.reset
+		.clk         (clk_50),      //                clk.clk
+		.reset       (resend),      //              reset.reset
 		.address     (address),     //   avalon_lcd_slave.address
 		.chipselect  (chipselect),  //                   .chipselect
 		.read        (read),        //                   .read

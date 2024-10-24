@@ -23,7 +23,7 @@ module lcd_display #(
     state_t current_state, next_state;
 
     localparam N_INSTRS = 13;
-	 localparam CMD_IDX = 7;
+	 localparam CMD_IDX = 6;
 	 localparam DIR_TENS_IDX = N_INSTRS-2;
 	 localparam DIR_ONES_IDX = N_INSTRS-1;
     logic [8:0] instructions [N_INSTRS] = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _HASH, _SPACE, _D, _r, _COLON, _HASH, _HASH};
