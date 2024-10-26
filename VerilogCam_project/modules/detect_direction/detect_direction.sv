@@ -11,7 +11,8 @@ module detect_direction #(
     input wire  [ADDR_BITS-1:0]  rdaddress,         // Flag to reset to beginning of frame
     input wire  [11:0]           rddata,            // Data read from BRAM
     output wire [4:0]            direction,         // Signed heading of detected object
-	 output wire 						no_red				 // Whether no red is detected
+	 output wire 						no_red,   			 // Whether no red is detected
+	 output wire [ADDR_BITS-1:0]  pixel_count
 );  
 
     // Basic Logic: If pixel over threshold, add its column number a total and
@@ -21,7 +22,7 @@ module detect_direction #(
 	 logic								 no_red_q;
     logic [4:0]                   direction_q;
     logic [$clog2(MAX_SUM)-1:0]   column_sum;
-    logic [ADDR_BITS-1:0]         pixel_count;
+    logic [ADDR_BITS-1:0]         pixel_count_q;
     logic [$clog2(IMAGE_WIDTH):0] average_column;
 
     assign direction = direction_q;
@@ -29,30 +30,31 @@ module detect_direction #(
     
     always_ff @(posedge clk) begin
 
-        average_column <= ( pixel_count != 0 ) ? column_sum / pixel_count : 0;
+        average_column <= ( pixel_count_q != 0 ) ? column_sum / pixel_count_q : 0;
 
         if( rdaddress == 0 ) begin
 		  
 				direction_q <= ( FOV * average_column ) / ( IMAGE_WIDTH - 1 );
-				no_red_q <= (pixel_count < 1000);
+				no_red_q <= (pixel_count_q < 1000);
+				pixel_count <= pixel_count_q;
 				
         end
 		  else if ( rdaddress == 1) begin
 		  
 		      column_sum <= 0;
-			   pixel_count <= 0;
+			   pixel_count_q <= 0;
 			
 		  end
 		  else if( rddata[11:8] > THRESHOLD && rddata[7:4] < rddata[11:8] - THRESHOLD && rddata[3:0] < rddata[11:8] - THRESHOLD ) begin: count_pixel
 		  
             column_sum <= column_sum + ( rdaddress % IMAGE_WIDTH );
-            pixel_count <= pixel_count + 1;
+            pixel_count_q <= pixel_count_q + 1;
 
         end
 		  else begin
 		  
 		      column_sum <= column_sum;
-            pixel_count <= pixel_count;
+            pixel_count_q <= pixel_count_q;
 				
 		  end
     end

@@ -5,10 +5,14 @@ module drive_logic #(
 	parameter FOV = 25,
 	parameter DEFAULT_DISTANCE = 20, // 2-450
 	parameter DEFAULT_LEFT_BOUND = 8,
-	parameter DEFAULT_RIGHT_BOUND = 15
+	parameter DEFAULT_RIGHT_BOUND = 15,
+	parameter IMAGE_WIDTH = 320,
+   parameter IMAGE_HEIGHT = 240,
+	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT)
 	)(
 	input wire                 clk,
 	input wire 						no_red,
+	input 	  [ADDR_BITS-1:0] pixel_count,
 	input wire [$clog2(FOV):0] detected_direction,
 	input wire [7:0]           average_distance,
 	input wire [3:0]           pitch,
@@ -23,9 +27,9 @@ module drive_logic #(
 	logic command = 0;
 	logic bot_off = 1;
 	logic too_close;
-	logic [8:0] follow_distance_q = DEFAULT_DISTANCE;
-	logic [8:0] left_bound = DEFAULT_LEFT_BOUND;
-	logic [8:0] right_bound = DEFAULT_RIGHT_BOUND;
+	logic [6:0] follow_distance_q = DEFAULT_DISTANCE;
+	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
+	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
 	
 	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
 	
@@ -50,8 +54,8 @@ module drive_logic #(
 			case( ir_command )
 				32'hed126b86: bot_off <= 1;																											// Stop
 				32'he9166b86: bot_off <= 0;																											// Go
-//				32'he51a6b86: follow_distance_q <= (follow_distance_q < 100) ? (follow_distance_q + 10) : follow_distance_q;			// Increment Follow Distance
-//				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 10) : follow_distance_q;			// Decrement Follow Distance
+//				32'he51a6b86: follow_distance_q <= (follow_distance_q < 100) ? (follow_distance_q + 7'b10) : follow_distance_q;			// Increment Follow Distance
+//				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 7'b10) : follow_distance_q;			// Decrement Follow Distance
 //				default: 	  bot_off <= 0;
 			endcase
 			
