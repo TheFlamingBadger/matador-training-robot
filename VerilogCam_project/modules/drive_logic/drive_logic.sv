@@ -21,7 +21,8 @@ module drive_logic #(
 	input wire						ir_data_ready,
 	output [2:0]               drive_command,
 	output [7:0]					follow_distance,
-	output                     valid
+	output                     valid,
+	output [2:0]					multiplier
 );
 	
 	logic command = 0;
@@ -43,6 +44,19 @@ module drive_logic #(
 //			end
 //		end
 //   end
+	always_comb begin
+		if (pixel_count > 15000) begin
+			multiplier = 3;
+		end
+		else if (pixel_count > 5000) begin
+			multiplier = 2;
+		end
+		else begin
+			multiplier = 1;
+		end
+	end
+		
+
 
 	always_ff begin : ir_logic
 	
