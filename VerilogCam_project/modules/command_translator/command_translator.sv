@@ -34,15 +34,8 @@ module command_translator (
 					  endcase
 				 end
 				 3'd3: begin
-				     // Straight
-					  case(multiplier)
-							// {"T":1,"L":-0.05,"R":-0.05}
-					      3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h30, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h30, 8'h35, 8'h7d, 8'h0a}; 
-							// {"T":1,"L":-0.15,"R":-0.15}
-							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h35, 8'h7d, 8'h0a}; 
-							// {"T":1,"L":-0.25,"R":-0.25}
-							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a}; 
-					  endcase
+				     // Straight - {"T":1,"L":-0.50,"R":-0.50}
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a}; 
 				 end
 				 3'd4: begin
 				     // Right

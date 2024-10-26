@@ -68,7 +68,7 @@ module drive_logic #(
 			case( ir_command )
 				32'hed126b86: bot_off <= 1;																											// Stop
 				32'he9166b86: bot_off <= 0;																											// Go
-//				32'he51a6b86: follow_distance_q <= (follow_distance_q < 100) ? (follow_distance_q + 7'b10) : follow_distance_q;			// Increment Follow Distance
+//				32'he51a6b86: follow_distance_q <= (follow_distance_q < 7'd100) ? (follow_distance_q + 7'd10) : follow_distance_q;			// Increment Follow Distance
 //				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 7'b10) : follow_distance_q;			// Decrement Follow Distance
 //				default: 	  bot_off <= 0;
 			endcase
