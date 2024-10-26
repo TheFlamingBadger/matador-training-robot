@@ -184,15 +184,20 @@ module integration_top_level (
   //------------ Microphone End ------------------//
   
   //------------ IR Reader Begin -----------------//
+  
+  wire [31:0] hex_data;
+  wire ir_data_ready;
 
-  top_level_ir ir_reader(
+  ir_reader u_ir(
     .CLOCK_50(clk_50),
     .KEY(KEY),
+	 .IRDA_RXD(IRDA_RXD),
     .HEX4(HEX4),
 	 .HEX5(HEX5),
 	 .HEX6(HEX6),
 	 .HEX7(HEX7),
-	 .IRDA_RXD(IRDA_RXD)
+	 .hex_data(hex_data),
+	 .ir_data_ready(ir_data_ready)
   );
 					
   //------------ IR Reader End -------------------//
@@ -284,6 +289,7 @@ module integration_top_level (
   logic valid;
   logic no_red;
   wire [2:0] command;
+  wire [7:0] follow_dist;
 
   
   drive_logic drive_logic_inst (
@@ -293,8 +299,10 @@ module integration_top_level (
 		.average_distance   (avg_distance),			// in: from ultrasonic
 		.pitch              (pitch_output.data),	// in: from microphone
 		.amplitude          (magnitude),				// in: from microphone
-		.ir_command			  (hex_data),				// in: from ir receiver
+		.ir_command			  (hex_data),				// in: from ir reader
+		.ir_data_ready		  (ir_data_ready),		// in: from ir reader
 		.drive_command      (command),				// out: to command translator
+		.follow_distance	  (follow_dist),			// out: to lcd display
 		.valid              (valid)					// out: to command translator
 	);
   
@@ -341,6 +349,7 @@ module integration_top_level (
 		 .reset(measure_pulse),
 		 .command(command),
 		 .direction(avg_direction),
+		 .distance(follow_dist),
 		 // Avalon-MM signals to LCD_Controller slave
 		 .address(address),          // Address line for LCD controller
 		 .chipselect(chipselect),

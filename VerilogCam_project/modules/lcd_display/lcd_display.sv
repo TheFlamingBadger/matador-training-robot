@@ -7,6 +7,7 @@ module lcd_display #(
     input  logic reset,
 	 input  logic [2:0] command,
 	 input  logic [$clog2(FOV):0] direction,
+	 input  logic [7:0] distance,
     // Avalon-MM signals to LCD_Controller slave:
     output logic address,
     output logic chipselect,
@@ -22,16 +23,27 @@ module lcd_display #(
     typedef enum logic [1:0] {IDLE, WRITE_OP} state_t;
     state_t current_state, next_state;
 
-    localparam N_INSTRS = 13;
+    localparam N_INSTRS = 18;
 	 localparam CMD_IDX = 6;
-	 localparam DIR_TENS_IDX = N_INSTRS-2;
-	 localparam DIR_ONES_IDX = N_INSTRS-1;
-    logic [8:0] instructions [N_INSTRS] = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _HASH, _SPACE, _D, _r, _COLON, _HASH, _HASH};
+	 localparam DIR_TENS_IDX = 10;
+	 localparam DIR_ONES_IDX = 11;
+	 localparam DIST_HUND_IDX = N_INSTRS-3;
+	 localparam DIST_TENS_IDX = N_INSTRS-2;
+	 localparam DIST_ONES_IDX = N_INSTRS-1;
+
+    logic [8:0] instructions [N_INSTRS] = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _HASH, _SPACE, _B, _COLON, _HASH, _HASH, _SPACE, _D, _COLON, _HASH, _HASH, _HASH};
 	 
 	 int dir_ones;
 	 int dir_tens;
 	 assign dir_ones = direction % 10;
 	 assign dir_tens = (direction - (direction % 10))/10;
+	 
+	 int dist_ones;
+	 int dist_tens;
+	 int dist_hund;
+	 assign dist_ones = distance % 10;
+	 assign dist_tens = ((distance % 100) - (distance % 10))/10;
+	 assign dist_hund = (distance - (distance % 100))/100;
     
     always_ff @(posedge clk) begin : set_command
         if(instruction_index != N_INSTRS-1) begin
@@ -71,6 +83,48 @@ module lcd_display #(
 					 8: instructions[DIR_ONES_IDX] = _8;
 					 9: instructions[DIR_ONES_IDX] = _9;
                 default: instructions[DIR_ONES_IDX] = _HASH;
+            endcase
+				
+				case(dist_hund)
+                0: instructions[DIST_HUND_IDX] = _0;
+                1: instructions[DIST_HUND_IDX] = _1;
+                2: instructions[DIST_HUND_IDX] = _2;
+                3: instructions[DIST_HUND_IDX] = _3;
+                4: instructions[DIST_HUND_IDX] = _4;
+                5: instructions[DIST_HUND_IDX] = _5;
+					 6: instructions[DIST_HUND_IDX] = _6;
+					 7: instructions[DIST_HUND_IDX] = _7;
+					 8: instructions[DIST_HUND_IDX] = _8;
+					 9: instructions[DIST_HUND_IDX] = _9;
+                default: instructions[DIST_HUND_IDX] = _HASH;
+            endcase
+				
+				case(dist_tens)
+                0: instructions[DIST_TENS_IDX] = _0;
+                1: instructions[DIST_TENS_IDX] = _1;
+                2: instructions[DIST_TENS_IDX] = _2;
+                3: instructions[DIST_TENS_IDX] = _3;
+                4: instructions[DIST_TENS_IDX] = _4;
+                5: instructions[DIST_TENS_IDX] = _5;
+					 6: instructions[DIST_TENS_IDX] = _6;
+					 7: instructions[DIST_TENS_IDX] = _7;
+					 8: instructions[DIST_TENS_IDX] = _8;
+					 9: instructions[DIST_TENS_IDX] = _9;
+                default: instructions[DIST_TENS_IDX] = _HASH;
+            endcase
+				
+				case(dist_ones)
+                0: instructions[DIST_ONES_IDX] = _0;
+                1: instructions[DIST_ONES_IDX] = _1;
+                2: instructions[DIST_ONES_IDX] = _2;
+                3: instructions[DIST_ONES_IDX] = _3;
+                4: instructions[DIST_ONES_IDX] = _4;
+                5: instructions[DIST_ONES_IDX] = _5;
+					 6: instructions[DIST_ONES_IDX] = _6;
+					 7: instructions[DIST_ONES_IDX] = _7;
+					 8: instructions[DIST_ONES_IDX] = _8;
+					 9: instructions[DIST_ONES_IDX] = _9;
+                default: instructions[DIST_ONES_IDX] = _HASH;
             endcase
 		  end
     end
