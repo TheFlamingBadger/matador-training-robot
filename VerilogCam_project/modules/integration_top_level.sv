@@ -208,7 +208,6 @@ module integration_top_level (
 	logic echo, trigger;
 	logic pll_clk, locked;
 	logic [7:0] raw_distance;
-	logic [7:0] avg_distance;
 
 	assign echo = GPIO[34];
 	assign GPIO[35] = trigger;
@@ -247,16 +246,6 @@ module integration_top_level (
 	  .distance(raw_distance)
 	);
 	  
-
-	oned_convolution_filt ultra_oned (
-		.clk(clk_50),
-		.reset(reset),
-		.raw_in(raw_distance),
-		.avg_out(avg_distance)
-	);
-	
-	assign LEDR = avg_distance;
-  
   //------------ Ultrasonic Sensor End -----------//
   
   //------------ Direction Detection Start -------//

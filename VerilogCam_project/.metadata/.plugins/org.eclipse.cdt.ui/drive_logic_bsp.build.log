@@ -1,0 +1,6 @@
+10:33:04 **** Clean-only build of configuration Nios II for project drive_logic_bsp ****
+wsl make clean 
+[BSP clean complete]
+
+10:33:04 Build Finished (took 400ms)
+
