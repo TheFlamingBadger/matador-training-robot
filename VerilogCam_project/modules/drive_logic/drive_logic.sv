@@ -11,7 +11,7 @@ module drive_logic #(
 	input wire                 clk,
 	input wire 						no_red,
 	input 	  [ADDR_BITS-1:0] pixel_count,
-	input wire [$clog2(FOV):0] detected_direction,
+	input wire [$clog2(FOV)-1:0] detected_direction,
 	input wire [7:0]           average_distance,
 	input wire [3:0]           pitch,
 	input wire [10:0]          amplitude,
@@ -32,6 +32,7 @@ module drive_logic #(
 	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
 	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
 	logic [31:0] last_command;
+	logic [$clog2(FOV)-1:0] last_direction;
 	
 	assign follow_distance = follow_distance_q;
 	
@@ -48,6 +49,7 @@ module drive_logic #(
 			multiplier = 1;
 		end
 	end
+	
 	
 	always_ff @(posedge clk) begin : ir_logic
 		
@@ -75,21 +77,26 @@ module drive_logic #(
 	always_ff @(posedge clk) begin: stun_logic
 	
 		if (!mute_on) begin
+		
 			if ( amplitude > 50 ) begin
+			
 				stun <= 1;
 				stun_counter <= 0;
+				
 			end
-			
 			
 			if (stun_counter > STUN_TIME) begin
+			
 				stun_counter <= 0;
 				stun <= 0;
+				
 			end
 			else begin
-				stun_counter <= stun_counter + 1;
-			end
-		end	
 			
+				stun_counter <= stun_counter + 1;
+				
+			end
+		end
 	end
 	
 	
@@ -100,19 +107,34 @@ module drive_logic #(
 	end
 	
 	
+	always_ff @(posedge clk) begin: last_direction_logic
+		
+		if( !no_red ) begin
+		
+			last_direction <= detected_direction;
+			
+		end
+	end
+	
+	
 	always_ff @(posedge clk) begin : drive_logic
 	
-		if( no_red || too_close || bot_off || stun ) begin
+		if( too_close || bot_off || stun ) begin
 			
 			next_state <= Stop;
 			
 		end
-		else if (detected_direction < left_bound) begin
+		else if( no_red ) begin
+		
+			next_state <= ( last_direction < 12 ) ? Left : Right;
+			
+		end
+		else if( detected_direction < left_bound ) begin
 		
 			next_state <= Left;
 			
 		end
-		else if (detected_direction > right_bound) begin
+		else if( detected_direction > right_bound ) begin
 		
 			next_state <= Right;
 			
