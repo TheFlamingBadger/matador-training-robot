@@ -8,7 +8,8 @@ module drive_logic #(
 	parameter DEFAULT_RIGHT_BOUND = 15,
 	parameter IMAGE_WIDTH = 320,
    parameter IMAGE_HEIGHT = 240,
-	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT)
+	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
+	parameter STUN_TIME = 50000
 	)(
 	input wire                 clk,
 	input wire 						no_red,
@@ -25,25 +26,16 @@ module drive_logic #(
 	output [2:0]					multiplier
 );
 	
-	logic command = 0;
 	logic bot_off = 1;
+	logic mute_on = 0;
+	logic stunned = 0;
 	logic too_close;
 	logic [6:0] follow_distance_q = DEFAULT_DISTANCE;
 	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
 	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
 	
 	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
-	
-//	always_ff begin: microphone_logic
-//		if (amplitude > AMPLITUDE_THRESHOLD) begin
-//			if (pitch < MAX_CLAP_PITCH) begin: clap
-//				command <= 0;
-//			end
-//			else if (pitch > MIN_WHISTLE_PITCH) begin: whistle
-//				command <= 1;
-//			end
-//		end
-//   end
+
 	always_comb begin
 		if (pixel_count > 15000) begin
 			multiplier = 3;
@@ -55,8 +47,6 @@ module drive_logic #(
 			multiplier = 1;
 		end
 	end
-		
-
 
 	always_ff begin : ir_logic
 	
@@ -66,8 +56,10 @@ module drive_logic #(
 		if (ir_data_ready) begin
 			
 			case( ir_command )
-				32'hed126b86: bot_off <= 1;																											// Stop
-				32'he9166b86: bot_off <= 0;																											// Go
+				32'hed126b86: bot_off <= 1 - bot_off;																								// POWER : Stop
+				32'he9166b86: bot_off <= 0;																											// PLAY  : Go
+				32'hf30c6b86: mute_on <= 1 - mute_on;																								// MUTE  : Mute/Unmute
+//				32'he8176b86: follow_distance_q <= DEFAULT_DISTANCE;																			// RETURN: Distance Reset
 //				32'he51a6b86: follow_distance_q <= (follow_distance_q < 7'd100) ? (follow_distance_q + 7'd10) : follow_distance_q;			// Increment Follow Distance
 //				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 7'b10) : follow_distance_q;			// Decrement Follow Distance
 //				default: 	  bot_off <= 0;
@@ -77,7 +69,27 @@ module drive_logic #(
 	
 	end
 	
+	
 	assign follow_distance = follow_distance_q;
+	
+	
+	always_ff begin: mic_logic
+	
+		if (!mute_on) begin
+			
+			if( stunned > 0 ) begin
+		
+				stunned <= (stunned > STUN_TIME) ? 0 : stunned + 1;
+			
+			end
+			else if (amplitude > AMPLITUDE_THRESHOLD) begin
+			
+				stunned <= 1;
+				
+			end
+		end
+	end
+	
 	
 	always_ff begin : ultrasonic
 	
@@ -85,9 +97,10 @@ module drive_logic #(
 		
 	end
 	
+	
 	always_ff begin : drive_logic
 	
-		if( no_red || too_close || bot_off ) begin
+		if( no_red || too_close || bot_off || stunned ) begin
 		
 			next_state <= Stop;
 			
@@ -112,6 +125,7 @@ module drive_logic #(
 
 	end
 	
+	
 	always_comb begin
 		case (current_state)
 			Stop: 		drive_command = 0;
@@ -122,6 +136,7 @@ module drive_logic #(
 			Fast_right: drive_command = 5;
 		endcase 
 	end
+	
 	
 	assign valid = 1;
 	

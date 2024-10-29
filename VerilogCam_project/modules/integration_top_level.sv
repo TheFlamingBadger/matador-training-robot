@@ -179,7 +179,23 @@ module integration_top_level (
 	 .magnitude(magnitude)
   );
 
-  display u_display (.clk(adc_clk),.value(pitch_output.data),.display0(HEX0),.display1(HEX1),.display2(HEX2),.display3(HEX3));
+  display pitch_display (
+	.clk(adc_clk),
+	.value(pitch_output.data),
+	.display0(HEX0),
+	.display1(HEX1),
+	.display2(),
+	.display3()
+  );
+  
+  display mag_display (
+	.clk(adc_clk),
+	.value(magnitude),
+	.display0(HEX2),
+	.display1(HEX3),
+	.display2(),
+	.display3()
+  );
 
   //------------ Microphone End ------------------//
   

@@ -1,6 +1,6 @@
 module display (
     input         clk,
-    input  [10:0] value,
+    input  [32:0] value,
     output [6:0]  display0,
     output [6:0]  display1,
     output [6:0]  display2,
