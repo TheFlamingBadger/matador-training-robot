@@ -1,0 +1,46 @@
+/*
+ * main.cpp
+ *
+ *  Created on: 29 Oct 2024
+ *      Author: joshn
+ */
+
+#include <stdio.h>
+#include "drive_logic_booyah.hpp"
+#include "command_translator.hpp"
+#include "system.h"
+#include "altera_avalon_pio_regs.h"
+
+//#define PIO_OUT_BASE 0x81000
+
+
+int read_pio(void){
+	return IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);
+}
+
+void write_pio(output){
+	IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, output)
+}
+
+
+int main(void){
+
+	int input = 0;
+
+	while(1){
+			input = read_pio();
+
+//	        void UpdateSensors( bool no_red, bool ir_valid, int detected_direction, int average_distance, int pitch, int magnitude, int ir_command );
+			int no_red = input[14];
+			int ir_valid = input[13];
+			int detected_direction = input[4:8];
+			int ave_dist = input[19:26]; // Still to be filtered!
+			int pitch = input[15:18];
+			int magnitude = input[0:3];
+			int IR_in = input[9:12]
+
+
+	}
+}
+
+

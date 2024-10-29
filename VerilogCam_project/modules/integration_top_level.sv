@@ -305,32 +305,56 @@ module integration_top_level (
 //  
 //  //------------ Drive Logic End -----------------//
 
-  //
+  // ---------- SoC Drive Logic Begin ------------//
   
-  //------------ Command Translator Start --------//
-  
-  logic cmd_ready;
-  logic uart_ready;
-  logic [7:0] ascii_out;
-  
-  command_translator command_translator_inst (
-		.clk       (clk_50),
-		.command   (command),   	// in: from drive logic
-		.multiplier(multiplier),	// in: from drive logic
-		.valid     (valid),			// in: from drive logic
-		.uart_ready(uart_ready),	// in: from UART
-		.ascii_out (ascii_out), 	// out: to UART
-		.cmd_ready (cmd_ready)  	// out: to UART
+	logic [8:0] SoC_out;
+	logic uart_ready;
+
+
+	my_softcore softcore_prn (
+		.clk_clk												(clk_50),
+		.pio_out_external_connection_in_port		({magnitude, avg_direction, hex_data[19:16], ir_data_ready, no_red, pitch_output.data, raw_distance}),
+		.pio_out_external_connection_out_port     (SoC_out),
+		.reset_reset_n										(1)
 	);
-  
-  
-  uart_tx uart_tx_inst (
+	
+	  uart_tx uart_tx_inst (
 		.clk (clk_50),
-		.data_tx (ascii_out),	// in: from command translator
-		.valid (cmd_ready),		// in: from command translator
+		.data_tx (SoC_out[7:0]),	// in: from command translator
+		.valid (SoC_out[8]),		// in: from command translator
 		.uart_out(GPIO[5]),		// out: to base
 		.tx_ready(uart_ready)	// out: to command translator
   );
+  
+  
+  
+  // ---------- SoC Drive Logic End ------------//
+
+  
+  //------------ Command Translator Start --------//
+  
+//  logic cmd_ready;
+//  logic uart_ready;
+//  logic [7:0] ascii_out;
+//  
+//  command_translator command_translator_inst (
+//		.clk       (clk_50),
+//		.command   (command),   	// in: from drive logic
+//		.multiplier(multiplier),	// in: from drive logic
+//		.valid     (valid),			// in: from drive logic
+//		.uart_ready(uart_ready),	// in: from UART
+//		.ascii_out (ascii_out), 	// out: to UART
+//		.cmd_ready (cmd_ready)  	// out: to UART
+//	);
+//  
+//  
+//  uart_tx uart_tx_inst (
+//		.clk (clk_50),
+//		.data_tx (ascii_out),	// in: from command translator
+//		.valid (cmd_ready),		// in: from command translator
+//		.uart_out(GPIO[5]),		// out: to base
+//		.tx_ready(uart_ready)	// out: to command translator
+//  );
   
   //------------ Command Translator End ----------//
 
