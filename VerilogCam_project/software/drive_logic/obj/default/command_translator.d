@@ -1,4 +1,19 @@
 obj/default/command_translator.o: command_translator.cpp \
- command_translator.hpp
+ command_translator.hpp \
+ C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/system.h \
+ C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/linker.h \
+ C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/drivers/inc/altera_avalon_pio_regs.h \
+ C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/HAL/inc/io.h \
+ C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/HAL/inc/alt_types.h
 
 command_translator.hpp:
+
+C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/system.h:
+
+C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/linker.h:
+
+C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/drivers/inc/altera_avalon_pio_regs.h:
+
+C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/HAL/inc/io.h:
+
+C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/drive_logic_bsp/HAL/inc/alt_types.h:

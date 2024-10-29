@@ -48,8 +48,13 @@ void CCommander::sendNextAscii() {
         // Here, instead of printing, you would send the `ascii_out` over UART
 
         // TODO - Josh is this where ascii_out would be transmitted?
-        IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, ascii_out);
-        usleep(100);
+        uint32_t pio_output = (static_cast<uint32_t>(ascii_out) << 8| m_cmd_ready);
+
+        IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, pio_output);
+
+        printf("0x%08X\n", pio_output);
+
+       usleep(100);
 
     } else {
         m_cmd_ready = false;    // All characters sent; transmission complete

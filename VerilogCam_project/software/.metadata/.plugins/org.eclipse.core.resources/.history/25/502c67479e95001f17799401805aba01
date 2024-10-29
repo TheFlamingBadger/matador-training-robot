@@ -1,0 +1,53 @@
+/*
+ * main.cpp
+ *
+ *  Created on: 29 Oct 2024
+ *      Author: joshn
+ */
+
+#include <stdio.h>
+#include "drive_logic_booyah.hpp"
+#include "command_translator.hpp"
+#include "system.h"
+#include "altera_avalon_pio_regs.h"
+
+//#define PIO_OUT_BASE 0x81000
+
+int read_pio(void){
+	return IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);
+}
+
+void write_pio(int output){
+	IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, output);
+}
+
+
+int main(void) {
+    int input;
+    CDriveComputer drive_computer = CDriveComputer();
+
+    while (1) {
+        input = read_pio();
+
+        printf("%d\n",input);
+
+        // Extract each specific bit or range of bits from the integer `input`
+        bool no_red = (input >> 14) & 1;
+        bool ir_valid = (input >> 13) & 1;
+        int detected_direction = (input >> 4) & 0xF; // Bits 4 to 7
+        int ave_dist = (input >> 19) & 0x7F;         // Bits 19 to 25
+        int pitch = (input >> 15) & 0xF;             // Bits 15 to 18
+        int magnitude = input & 0xF;                 // Bits 0 to 3
+        int IR_in = (input >> 9) & 0xF;              // Bits 9 to 12
+
+        drive_computer.UpdateSensors(no_red, ir_valid, detected_direction, ave_dist, pitch, magnitude, IR_in);
+        // write pio
+
+    }
+
+    return 0;
+}
+
+
+
+

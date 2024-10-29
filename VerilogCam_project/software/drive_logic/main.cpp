@@ -6,13 +6,13 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include "drive_logic_booyah.hpp"
 #include "command_translator.hpp"
 #include "system.h"
 #include "altera_avalon_pio_regs.h"
 
 //#define PIO_OUT_BASE 0x81000
-
 
 int read_pio(void){
 	return IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);
@@ -24,11 +24,12 @@ void write_pio(int output){
 
 
 int main(void) {
-    int input;
+	uint32_t input;
     CDriveComputer drive_computer = CDriveComputer();
 
     while (1) {
         input = read_pio();
+
 
         // Extract each specific bit or range of bits from the integer `input`
         bool no_red = (input >> 14) & 1;
@@ -39,10 +40,26 @@ int main(void) {
         int magnitude = input & 0xF;                 // Bits 0 to 3
         int IR_in = (input >> 9) & 0xF;              // Bits 9 to 12
 
+        printf("Extracted Values:\n");
+        printf("No Red: %s\n", no_red ? "True" : "False");
+        printf("IR Valid: %s\n", ir_valid ? "True" : "False");
+        printf("Detected Direction: % d\n", detected_direction);
+        printf("Average Distance: % d\n", ave_dist);
+        printf("Pitch: % d\n", pitch);
+        printf("Magnitude: % d\n", magnitude);
+        printf("IR Input: % d\n \n", IR_in);
+
+        usleep(1000);
+
+
         drive_computer.UpdateSensors(no_red, ir_valid, detected_direction, ave_dist, pitch, magnitude, IR_in);
+        // write pio
+
     }
 
     return 0;
 }
+
+
 
 

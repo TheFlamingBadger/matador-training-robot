@@ -309,11 +309,20 @@ module integration_top_level (
   
 	logic [8:0] SoC_out;
 	logic uart_ready;
-
+	logic [7:0] filtered_dist
+	
+	
+  oned_convolution_filt  peepooo (
+		.clk(clk_50),
+		.reset(reset),
+		.raw_in(raw_distance),
+		.avg_out(filtered_dist)
+	);
 
 	my_softcore softcore_prn (
 		.clk_clk												(clk_50),
-		.pio_out_external_connection_in_port		({magnitude, avg_direction, hex_data[19:16], ir_data_ready, no_red, pitch_output.data, raw_distance}),
+//		.pio_out_external_connection_in_port		({magnitude, avg_direction, hex_data[19:16], ir_data_ready, no_red, pitch_output.data, filtered_dist}),
+		.pio_out_external_connection_in_port		(0),
 		.pio_out_external_connection_out_port     (SoC_out),
 		.reset_reset_n										(1)
 	);
