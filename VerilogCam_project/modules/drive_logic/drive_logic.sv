@@ -6,7 +6,7 @@ module drive_logic #(
 	parameter IMAGE_WIDTH = 320,
    parameter IMAGE_HEIGHT = 240,
 	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
-	parameter STUN_TIME = 600000000
+	parameter STUN_TIME = 200000000
 	)(
 	input wire                 clk,
 	input wire 						no_red,
@@ -31,6 +31,9 @@ module drive_logic #(
 	logic [6:0] follow_distance_q = DEFAULT_DISTANCE;
 	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
 	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
+	logic [31:0] last_command;
+	
+	assign follow_distance = follow_distance_q;
 	
 	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
 	
@@ -47,31 +50,26 @@ module drive_logic #(
 	end
 	
 	always_ff @(posedge clk) begin : ir_logic
-	
-		// Custom: 68b6
-		// Power:  21de
 		
 		if (ir_data_ready) begin
 			
-			case( ir_command )
-				32'hed126b86: bot_off <= 1;																								// POWER : Stop
-				32'he9166b86: bot_off <= 0;																								// PLAY  : Go
-				32'hf30c6b86: mute_on <= 1;																								// MUTE  : Mute
-				32'he8176b86: begin																											// RETURN: Reset to Defaults
-					mute_on <= 0;
-					follow_distance_q <= DEFAULT_DISTANCE;																
-				end
-				32'he51a6b86: follow_distance_q <= (follow_distance_q < 7'd100) ? (follow_distance_q + 7'd10) : follow_distance_q;			// Increment Follow Distance
-//				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 7'b10) : follow_distance_q;			// Decrement Follow Distance
-//				default: 	  bot_off <= 0;
-			endcase
+			last_command <= ir_command;	// Prevents repeat increment/decrement (press a different key between increments/decrements)
 			
+			case( ir_command )
+				32'hed126b86: bot_off <= 1;	// POWER : Stop
+				32'he9166b86: bot_off <= 0;	// PLAY  : Go
+				32'hf30c6b86: mute_on <= 1;	// MUTE  : Mute
+				32'he8176b86: begin				// RETURN: Reset to Defaults
+									  mute_on <= 0;
+									  follow_distance_q <= DEFAULT_DISTANCE;																
+								  end
+				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd100))	// Increment Follow Distance
+																? (follow_distance_q + 7'd10) : follow_distance_q;			
+				32'he11e6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q > 7'd20))		// Decrement Follow Distance
+																? (follow_distance_q - 7'd10) : follow_distance_q;			
+			endcase
 		end
-	
 	end
-	
-	
-	assign follow_distance = follow_distance_q;
 	
 	
 	always_ff @(posedge clk) begin: stun_logic
@@ -95,7 +93,7 @@ module drive_logic #(
 	end
 	
 	
-	always_ff @(posedge clk) begin : ultrasonic
+	always_ff @(posedge clk) begin : distance_logic
 	
 		too_close <= ( average_distance < follow_distance_q );
 		
