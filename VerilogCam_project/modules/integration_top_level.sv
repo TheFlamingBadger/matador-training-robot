@@ -274,36 +274,38 @@ module integration_top_level (
   
   //------------ Direction Detection End ---------//
   
-  //------------ Drive Logic Begin ---------------//
-  
-  logic valid;
-  logic no_red;
-  parameter IMAGE_WIDTH = 320;
-  parameter IMAGE_HEIGHT = 240;
-  parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT);
-  wire [ADDR_BITS-1:0] pixel_count;
-  wire [2:0] command;
-  wire [7:0] follow_dist;
-  wire [2:0]	multiplier;
+//  //------------ Drive Logic Begin ---------------//
+//  
+//  logic valid;
+//  logic no_red;
+//  parameter IMAGE_WIDTH = 320;
+//  parameter IMAGE_HEIGHT = 240;
+//  parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT);
+//  wire [ADDR_BITS-1:0] pixel_count;
+//  wire [2:0] command;
+//  wire [7:0] follow_dist;
+//  wire [2:0]	multiplier;
+//
+//  
+//  drive_logic drive_logic_inst (
+//		.clk                (clk_50),
+//		.no_red				  (no_red),		         // in: from detect direction
+//		.pixel_count		  (pixel_count),			// in: from detect direction
+//		.detected_direction (avg_direction),		// in: from detect direction
+//		.average_distance   (avg_distance),			// in: from ultrasonic
+//		.pitch              (pitch_output.data),	// in: from microphone
+//		.amplitude          (magnitude),				// in: from microphone
+//		.ir_command			  (hex_data),				// in: from ir reader
+//		.ir_data_ready		  (ir_data_ready),		// in: from ir reader
+//		.drive_command      (command),				// out: to command translator
+//		.follow_distance	  (follow_dist),			// out: to lcd display
+//		.valid              (valid),					// out: to command translator
+//		.multiplier			  (multiplier)				// out: to command translator
+//	);
+//  
+//  //------------ Drive Logic End -----------------//
 
-  
-  drive_logic drive_logic_inst (
-		.clk                (clk_50),
-		.no_red				  (no_red),		         // in: from detect direction
-		.pixel_count		  (pixel_count),			// in: from detect direction
-		.detected_direction (avg_direction),		// in: from detect direction
-		.average_distance   (avg_distance),			// in: from ultrasonic
-		.pitch              (pitch_output.data),	// in: from microphone
-		.amplitude          (magnitude),				// in: from microphone
-		.ir_command			  (hex_data),				// in: from ir reader
-		.ir_data_ready		  (ir_data_ready),		// in: from ir reader
-		.drive_command      (command),				// out: to command translator
-		.follow_distance	  (follow_dist),			// out: to lcd display
-		.valid              (valid),					// out: to command translator
-		.multiplier			  (multiplier)				// out: to command translator
-	);
-  
-  //------------ Drive Logic End -----------------//
+  //
   
   //------------ Command Translator Start --------//
   

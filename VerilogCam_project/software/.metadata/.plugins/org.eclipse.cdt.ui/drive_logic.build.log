@@ -1,0 +1,6 @@
+11:08:23 **** Clean-only build of configuration Nios II for project drive_logic ****
+wsl make clean 
+[drive_logic clean complete]
+
+11:08:24 Build Finished (took 724ms)
+
