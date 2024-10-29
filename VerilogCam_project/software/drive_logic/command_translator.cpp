@@ -5,6 +5,49 @@
  *      Author: joshn
  */
 
+#include "command_translator.hpp"
+#include <stdio.h>   // For snprintf
+#include <string.h>  // For memset
 
+CCommander::CCommander() {
+    memset(m_json_command, 0, sizeof(m_json_command));
+}
+
+void CCommander::SendCommand(float left_wheel_speed, float right_wheel_speed) {
+    // Set wheel speeds
+    m_left_wheel_speed = left_wheel_speed;
+    m_right_wheel_speed = right_wheel_speed;
+
+    // Prepare JSON command string and mark as ready
+    prepareJsonCommand();
+    m_cmd_ready = true;
+
+    // Sequentially transmit each ASCII character
+    while (m_cmd_ready) {
+        sendNextAscii();
+    }
+}
+
+// Helper function to format JSON string based on wheel speeds
+void CCommander::prepareJsonCommand() {
+    memset(m_json_command, 0, sizeof(m_json_command));
+    snprintf(m_json_command, sizeof(m_json_command), "{\"T\":1,\"L\":%.2f,\"R\":%.2f}\n", m_left_wheel_speed, m_right_wheel_speed);
+    m_command_length = strlen(m_json_command);  // Calculate the length of the JSON command
+}
+
+// Simulate UART transmission by outputting one ASCII character at a time
+void CCommander::sendNextAscii() {
+    static int current_index = 0;
+
+    if (current_index < m_command_length) {
+        uint8_t ascii_out = m_json_command[current_index++];
+        // Here, instead of printing, you would send the `ascii_out` over UART
+
+        // TODO - Josh is this where ascii_out would be transmitted?
+    } else {
+        m_cmd_ready = false;    // All characters sent; transmission complete
+        current_index = 0;      // Reset for next command
+    }
+}
 
 
