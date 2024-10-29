@@ -8,10 +8,8 @@
 #include "command_translator.hpp"
 #include <stdio.h>   // For snprintf
 #include <string.h>  // For memset
-#include <unistd.h>
 #include "system.h"
 #include "altera_avalon_pio_regs.h"
-
 
 CCommander::CCommander() {
     memset(m_json_command, 0, sizeof(m_json_command));
@@ -48,8 +46,6 @@ void CCommander::sendNextAscii() {
         // Here, instead of printing, you would send the `ascii_out` over UART
 
         // TODO - Josh is this where ascii_out would be transmitted?
-        IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, ascii_out);
-        usleep(100);
 
     } else {
         m_cmd_ready = false;    // All characters sent; transmission complete
