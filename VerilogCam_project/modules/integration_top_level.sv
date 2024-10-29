@@ -184,18 +184,13 @@ module integration_top_level (
 	.value(pitch_output.data),
 	.display0(HEX0),
 	.display1(HEX1),
-	.display2(),
-	.display3()
+	.display2(HEX2),
+	.display3(HEX3)
   );
-  
-  display mag_display (
-	.clk(adc_clk),
-	.value(magnitude),
-	.display0(HEX2),
-	.display1(HEX3),
-	.display2(),
-	.display3()
-  );
+
+	logic [10:0] amp_mag;
+
+	assign amp_mag = magnitude/1000000;
 
   //------------ Microphone End ------------------//
   
@@ -321,7 +316,7 @@ module integration_top_level (
 		.detected_direction (avg_direction),		// in: from detect direction
 		.average_distance   (avg_distance),			// in: from ultrasonic
 		.pitch              (pitch_output.data),	// in: from microphone
-		.amplitude          (magnitude),				// in: from microphone
+		.amplitude          (amp_mag),				// in: from microphone
 		.ir_command			  (hex_data),				// in: from ir reader
 		.ir_data_ready		  (ir_data_ready),		// in: from ir reader
 		.drive_command      (command),				// out: to command translator

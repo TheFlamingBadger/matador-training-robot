@@ -1,7 +1,4 @@
 module drive_logic #(
-	parameter AMPLITUDE_THRESHOLD = 4,
-	parameter MAX_CLAP_PITCH = 4,
-	parameter MIN_WHISTLE_PITCH = 12,
 	parameter FOV = 25,
 	parameter DEFAULT_DISTANCE = 20, // 2-450
 	parameter DEFAULT_LEFT_BOUND = 8,
@@ -9,7 +6,7 @@ module drive_logic #(
 	parameter IMAGE_WIDTH = 320,
    parameter IMAGE_HEIGHT = 240,
 	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
-	parameter STUN_TIME = 50000
+	parameter STUN_TIME = 600000000
 	)(
 	input wire                 clk,
 	input wire 						no_red,
@@ -17,7 +14,7 @@ module drive_logic #(
 	input wire [$clog2(FOV):0] detected_direction,
 	input wire [7:0]           average_distance,
 	input wire [3:0]           pitch,
-	input wire [3:0]           amplitude,
+	input wire [10:0]          amplitude,
 	input wire [31:0]				ir_command,
 	input wire						ir_data_ready,
 	output [2:0]               drive_command,
@@ -26,16 +23,17 @@ module drive_logic #(
 	output [2:0]					multiplier
 );
 	
-	logic bot_off = 1;
+	logic bot_off = 0;
 	logic mute_on = 0;
-	logic stunned = 0;
+	logic stun = 0;
+	logic [$clog2(STUN_TIME)-1:0] stun_counter = 0;
 	logic too_close;
 	logic [6:0] follow_distance_q = DEFAULT_DISTANCE;
 	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
 	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
 	
 	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
-
+	
 	always_comb begin
 		if (pixel_count > 15000) begin
 			multiplier = 3;
@@ -47,8 +45,8 @@ module drive_logic #(
 			multiplier = 1;
 		end
 	end
-
-	always_ff begin : ir_logic
+	
+	always_ff @(posedge clk) begin : ir_logic
 	
 		// Custom: 68b6
 		// Power:  21de
@@ -56,11 +54,14 @@ module drive_logic #(
 		if (ir_data_ready) begin
 			
 			case( ir_command )
-				32'hed126b86: bot_off <= 1 - bot_off;																								// POWER : Stop
-				32'he9166b86: bot_off <= 0;																											// PLAY  : Go
-				32'hf30c6b86: mute_on <= 1 - mute_on;																								// MUTE  : Mute/Unmute
-//				32'he8176b86: follow_distance_q <= DEFAULT_DISTANCE;																			// RETURN: Distance Reset
-//				32'he51a6b86: follow_distance_q <= (follow_distance_q < 7'd100) ? (follow_distance_q + 7'd10) : follow_distance_q;			// Increment Follow Distance
+				32'hed126b86: bot_off <= 1;																								// POWER : Stop
+				32'he9166b86: bot_off <= 0;																								// PLAY  : Go
+				32'hf30c6b86: mute_on <= 1;																								// MUTE  : Mute
+				32'he8176b86: begin																											// RETURN: Reset to Defaults
+					mute_on <= 0;
+					follow_distance_q <= DEFAULT_DISTANCE;																
+				end
+				32'he51a6b86: follow_distance_q <= (follow_distance_q < 7'd100) ? (follow_distance_q + 7'd10) : follow_distance_q;			// Increment Follow Distance
 //				32'he11e6b86: follow_distance_q <= (follow_distance_q > 20) ? (follow_distance_q - 7'b10) : follow_distance_q;			// Decrement Follow Distance
 //				default: 	  bot_off <= 0;
 			endcase
@@ -73,35 +74,38 @@ module drive_logic #(
 	assign follow_distance = follow_distance_q;
 	
 	
-	always_ff begin: mic_logic
+	always_ff @(posedge clk) begin: stun_logic
 	
 		if (!mute_on) begin
-			
-			if( stunned > 0 ) begin
-		
-				stunned <= (stunned > STUN_TIME) ? 0 : stunned + 1;
-			
+			if ( amplitude > 50 ) begin
+				stun <= 1;
+				stun_counter <= 0;
 			end
-			else if (amplitude > AMPLITUDE_THRESHOLD) begin
 			
-				stunned <= 1;
-				
+			
+			if (stun_counter > STUN_TIME) begin
+				stun_counter <= 0;
+				stun <= 0;
 			end
-		end
+			else begin
+				stun_counter <= stun_counter + 1;
+			end
+		end	
+			
 	end
 	
 	
-	always_ff begin : ultrasonic
+	always_ff @(posedge clk) begin : ultrasonic
 	
 		too_close <= ( average_distance < follow_distance_q );
 		
 	end
 	
 	
-	always_ff begin : drive_logic
+	always_ff @(posedge clk) begin : drive_logic
 	
-		if( no_red || too_close || bot_off || stunned ) begin
-		
+		if( no_red || too_close || bot_off || stun ) begin
+			
 			next_state <= Stop;
 			
 		end
