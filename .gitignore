@@ -15,3 +15,4 @@ VerilogCam_project/simulation
 # Quartus-generated binary files
 .qws
 VerilogCam_project/VerilogCam.qws
+/VerilogCam_project/software/.metadata

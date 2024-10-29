@@ -258,14 +258,22 @@ module integration_top_level (
 	  .distance(raw_distance)
 	);
 	  
-
-	oned_convolution_filt ultra_oned (
-		.clk(clk_50),
-		.reset(reset),
-		.raw_in(raw_distance),
-		.avg_out(avg_distance)
-	);
+//
+//	oned_convolution_filt ultra_oned (
+//		.clk(clk_50),
+//		.reset(reset),
+//		.raw_in(raw_distance),
+//		.avg_out(avg_distance)
+//	);
 	
+	my_softcore Ultrasonic_DSP(
+	
+		.clk_clk(clk_50),
+		.pio_out_external_connection_in_port(raw_distance),
+		.pio_out_external_connection_out_port(avg_distance),
+		.reset_reset_n(1) // maybe change to reset
+	);
+
 	assign LEDR = avg_distance;
   
   //------------ Ultrasonic Sensor End -----------//
