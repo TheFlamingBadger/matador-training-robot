@@ -179,20 +179,24 @@ module integration_top_level (
 	 .magnitude(magnitude)
   );
 
-  display pitch_display (
+	logic [10:0] amp_mag;
+
+	assign amp_mag = magnitude/1000000;		// To drive logic
+
+  //------------ Microphone End ------------------//
+  
+  //------------ Display Start -------------------//
+  
+  display num_display (
 	.clk(adc_clk),
-	.value(pitch_output.data),
+	.value(avg_distance),
 	.display0(HEX0),
 	.display1(HEX1),
 	.display2(HEX2),
 	.display3(HEX3)
   );
-
-	logic [10:0] amp_mag;
-
-	assign amp_mag = magnitude/1000000;
-
-  //------------ Microphone End ------------------//
+  
+  //------------ Display End----------------------//
   
   //------------ IR Reader Begin -----------------//
   
@@ -216,10 +220,11 @@ module integration_top_level (
   //------------ Ultrasonic Sensor Begin ---------//
   
 	logic start, reset;
+//	assign reset = resend;
 	logic echo, trigger;
 	logic pll_clk, locked;
 	logic [7:0] raw_distance;
-	logic [7:0] prev_distance;
+	logic [7:0] prev_distance = 0;
 	logic [7:0] avg_distance;
 
 	assign echo = GPIO[34];
@@ -261,17 +266,19 @@ module integration_top_level (
 	  
 	ema_filt ultra_ema_filt (
 		.clk(clk_50),
+		.reset(reset),
 		.curr_in(raw_distance),
 		.prev_out(prev_distance),
+		.new_prev_out(prev_distance),
 		.curr_out(avg_distance)
-	)
-
-	oned_convolution_filt ultra_oned (
-		.clk(clk_50),
-		.reset(reset),
-		.raw_in(raw_distance),
-		.avg_out(avg_distance)
 	);
+
+//	oned_convolution_filt ultra_oned (
+//		.clk(clk_50),
+//		.reset(reset),
+//		.raw_in(raw_distance),
+//		.avg_out(avg_distance)
+//	);
 	
 	assign LEDR = avg_distance;
   
@@ -313,7 +320,7 @@ module integration_top_level (
   wire [ADDR_BITS-1:0] pixel_count;
   wire [2:0] command;
   wire [7:0] follow_dist;
-  wire [2:0]	multiplier;
+  wire [2:0] multiplier;
 
   
   drive_logic drive_logic_inst (
