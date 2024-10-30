@@ -26,6 +26,7 @@ module drive_logic #(
 	
 	logic bot_off = 1;
 	logic mute_on = 0;
+	logic charge_counter = 0;
 	logic [2:0] difficulty = 1;
 	logic stun = 0;
 	logic [$clog2(STUN_TIME)-1:0] stun_counter = 0;
@@ -40,7 +41,7 @@ module drive_logic #(
 	assign difficulty_disp = difficulty;
 	assign noise_registered = !mute_on && (amplitude > 70);
 	
-	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight} next_state, prev_state, current_state = Stop;
+	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight, Charge} next_state, prev_state, current_state = Stop;
 	
 	
 	always_ff @(posedge clk) begin : ir_logic
@@ -110,14 +111,14 @@ module drive_logic #(
 	end
 	
 	
-	always_ff @(posedge clk) begin: last_direction_logic
-		
-		if( !no_red ) begin
-		
-			prev_state <= current_state;
-			
-		end
-	end
+//	always_ff @(posedge clk) begin: last_direction_logic
+//		
+//		if( !no_red ) begin
+//		
+//			prev_state <= current_state;
+//			
+//		end
+//	end
 	
 	
 	always_ff @(posedge clk) begin : drive_logic
@@ -127,13 +128,23 @@ module drive_logic #(
 			next_state <= Stop;
 			
 		end
+		else if( current_state == Charge ) begin
+			charge_counter <= charge_counter + 1;
+			if (charge_counter < 200000000 ) begin
+				next_state <= Charge;
+			end
+			else begin
+				charge_counter <= 0;
+				next_state <= TurnRight;
+			end
+		end
 		else if( no_red ) begin
 		
 			case (prev_state)
 				Stop: 		next_state <= Stop;
 				TurnLeft: 	next_state <= TurnLeft;
 				Left: 		next_state <= TurnLeft;
-				Straight: 	next_state <= Stop;
+				Straight: 	next_state <= Charge;
 				Right: 		next_state <= TurnRight;
 				TurnRight:  next_state <= TurnRight;
 			endcase
@@ -152,9 +163,9 @@ module drive_logic #(
 		else begin
 		
 			next_state <= Straight;
-			
+		
 		end
-	
+		prev_state <= current_state;
 		current_state <= next_state;
 
 	end
@@ -168,6 +179,7 @@ module drive_logic #(
 			Straight: 	drive_command = 3;
 			Right: 		drive_command = 4;
 			TurnRight:  drive_command = 5;
+			Charge: 		drive_command = 3;
 		endcase 
 	end
 	
