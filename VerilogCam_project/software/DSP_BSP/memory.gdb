@@ -3,7 +3,7 @@
 # Machine generated for CPU 'cpu' in SOPC Builder design 'my_softcore'
 # SOPC Builder design path: C:/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/my_softcore.sopcinfo
 #
-# Generated: Wed Oct 30 09:10:59 AEDT 2024
+# Generated: Wed Oct 30 15:49:46 AEDT 2024
 
 # DO NOT MODIFY THIS FILE
 #

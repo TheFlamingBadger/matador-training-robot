@@ -2,10 +2,10 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>30/10/2024 9:10:57 AM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1730239857890</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>31/10/2024 9:46:16 AM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1730328376464</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\joshn\iCloudDrive\Desktop\Uni\MTRX3700\Major-Project\mtrx3700-major-project\VerilogCam_project\software\DSP_BSP</BspGeneratedLocation>
-        <BspSettingsFile>.\settings.bsp</BspSettingsFile>
+        <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>C:\Users\joshn\iCloudDrive\Desktop\Uni\MTRX3700\Major-Project\mtrx3700-major-project\VerilogCam_project\my_softcore.sopcinfo</SopcDesignFile>
         <JdiFile>default</JdiFile>
         <Cpu>cpu</Cpu>
