@@ -20,11 +20,12 @@ module drive_logic #(
 	output [2:0]               drive_command,
 	output [7:0]					follow_distance,
 	output                     valid,
-	output [2:0]					multiplier
+	output [2:0]					difficulty_disp
 );
 	
 	logic bot_off = 1;
 	logic mute_on = 0;
+	logic [2:0] difficulty = 1;
 	logic stun = 0;
 	logic [$clog2(STUN_TIME)-1:0] stun_counter = 0;
 	logic too_close;
@@ -35,22 +36,9 @@ module drive_logic #(
 	logic [$clog2(FOV)-1:0] last_direction;
 	
 	assign follow_distance = follow_distance_q;
+	assign difficulty_disp = difficulty;
 	
 	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight} next_state, prev_state, current_state = Stop;
-	
-//	always_comb begin
-//		if (pixel_count > 15000) begin
-//			multiplier = 3;
-//		end
-//		else if (pixel_count > 5000) begin
-//			multiplier = 2;
-//		end
-//		else begin
-//			multiplier = 1;
-//		end
-//	end
-
-	assign multiplier = 3'd3;
 	
 	
 	always_ff @(posedge clk) begin : ir_logic
@@ -60,13 +48,16 @@ module drive_logic #(
 			last_command <= ir_command;	// Prevents repeat increment/decrement (press a different key between increments/decrements)
 			
 			case( ir_command )
-				32'hed126b86: bot_off <= 1;	// POWER : Stop
-				32'he9166b86: bot_off <= 0;	// PLAY  : Go
-				32'hf30c6b86: mute_on <= 1;	// MUTE  : Mute
-				32'he8176b86: begin				// RETURN: Reset to Defaults
+				32'hed126b86: bot_off <= 1;																									// POWER : Stop
+				32'he9166b86: bot_off <= 0;																									// PLAY  : Go
+				32'hf30c6b86: mute_on <= 1;																									// MUTE  : Mute
+				32'he8176b86: begin																												// RETURN: Reset to Defaults
 									  mute_on <= 0;
 									  follow_distance_q <= DEFAULT_DISTANCE;																
 								  end
+				32'hfe016b86: difficulty <= 1;																								// 1: Difficult 1 - Easy
+				32'hfd026b86: difficulty <= 2;																								// 2: Difficult 2 - Medium
+				32'hfc036b86: difficulty <= 3;																								// 3: Difficult 3 - Hard
 				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd100))	// CHANNEL UP: Increment Follow Distance
 																? (follow_distance_q + 7'd10) : follow_distance_q;			
 				32'he11e6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q > 7'd20))		// CHANNEL DOWN: Decrement Follow Distance

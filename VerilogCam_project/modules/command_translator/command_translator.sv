@@ -1,7 +1,7 @@
 module command_translator (
     input           clk,
     input     [2:0] command,
-	 input 	  [2:0] multiplier,
+	 input 	  [2:0] difficulty,
     input           valid,
 	 input 			  uart_ready,
     output logic [7:0] ascii_out,  // ASCII output for UART transmission
@@ -19,39 +19,60 @@ module command_translator (
 					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd1: begin
-				     // Hard Left - {"T":1,"L":-0.20,"R":00.20}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
+					  // Hard Left
+					  case(difficulty)
+							// Easy - {"T":1,"L":-0.10,"R":00.10}
+							3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a};
+							// Medium - {"T":1,"L":-0.30,"R":00.30}
+							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a};
+							// Hard - {"T":1,"L":-0.30,"R":00.30}
+							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a};
+					  endcase
 				 end
 				 3'd2: begin
 				     // Left
-					  case(multiplier)
-							// {"T":1,"L":-0.10,"R":-0.05}
+					  case(difficulty)
+							// Easy - {"T":1,"L":-0.10,"R":-0.05}
 					      3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h30, 8'h35, 8'h7d, 8'h0a};
-							// {"T":1,"L":-0.20,"R":-0.10}
+							// Medium - {"T":1,"L":-0.20,"R":-0.10}
 							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a}; 
-							// {"T":1,"L":-0.30,"R":-0.15}
+							// Hard - {"T":1,"L":-0.30,"R":-0.15}
 							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h35, 8'h7d, 8'h0a}; 
 					  endcase
 				 end
 				 3'd3: begin
-				     // Straight - {"T":1,"L":-0.50,"R":-0.50}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h35, 8'h7d, 8'h0a}; 
+				     // Straight
+					  case(difficulty)
+							// Easy - {"T":1,"L":-0.10,"R":-0.10}
+							3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a}; 
+							// Medium - {"T":1,"L":-0.30,"R":-0.30}
+							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a}; 
+							// Hard - {"T":1,"L":-0.50,"R":-0.50}
+							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a}; 
+					  endcase
 				 end
 				 3'd4: begin
 				     // Right
-					  case(multiplier)
-							// {"T":1,"L":-0.05,"R":-0.10}
+					  case(difficulty)
+							// Easy - {"T":1,"L":-0.05,"R":-0.10}
 					      3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h30, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a};
-							// {"T":1,"L":-0.10,"R":-0.20}
+							// Medium - {"T":1,"L":-0.10,"R":-0.20}
 							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a}; 
-							// {"T":1,"L":-0.15,"R":-0.30}
+							// Hard - {"T":1,"L":-0.15,"R":-0.30}
 							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h35, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a}; 
 					  endcase
 					 
 				 end
 				 3'd5: begin
-				     // Hard Right - {"T":1,"L":00.20,"R":-0.20}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
+				     // Hard Right
+					  case(difficulty)
+							// Easy - {"T":1,"L":00.10,"R":-0.10}
+							3'd1: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h7d, 8'h0a};
+							// Medium - {"T":1,"L":00.30,"R":-0.30}
+							3'd2: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a};
+							// Hard - {"T":1,"L":00.30,"R":-0.30}
+							3'd3: json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a};
+					  endcase
 				 end
 				 default: begin
 				     // STOP - {"T":0,"L":00.00,"R":00.00}

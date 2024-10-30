@@ -220,7 +220,7 @@ module integration_top_level (
   //------------ Ultrasonic Sensor Begin ---------//
   
 	logic start, reset;
-//	assign reset = resend;
+	assign reset = resend;
 	logic echo, trigger;
 	logic pll_clk, locked;
 	logic [7:0] raw_distance;
@@ -320,7 +320,7 @@ module integration_top_level (
   wire [ADDR_BITS-1:0] pixel_count;
   wire [2:0] command;
   wire [7:0] follow_dist;
-  wire [2:0] multiplier;
+  wire [2:0] difficulty;
 
   
   drive_logic drive_logic_inst (
@@ -336,7 +336,7 @@ module integration_top_level (
 		.drive_command      (command),				// out: to command translator
 		.follow_distance	  (follow_dist),			// out: to lcd display
 		.valid              (valid),					// out: to command translator
-		.multiplier			  (multiplier)				// out: to command translator
+		.difficulty_disp	  (difficulty)				// out: to command translator
 	);
   
   //------------ Drive Logic End -----------------//
@@ -350,7 +350,7 @@ module integration_top_level (
   command_translator command_translator_inst (
 		.clk       (clk_50),
 		.command   (command),   	// in: from drive logic
-		.multiplier(multiplier),	// in: from drive logic
+		.difficulty(difficulty),	// in: from drive logic
 		.valid     (valid),			// in: from drive logic
 		.uart_ready(uart_ready),	// in: from UART
 		.ascii_out (ascii_out), 	// out: to UART
