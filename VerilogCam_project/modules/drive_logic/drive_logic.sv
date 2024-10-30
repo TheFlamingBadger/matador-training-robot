@@ -36,7 +36,7 @@ module drive_logic #(
 	
 	assign follow_distance = follow_distance_q;
 	
-	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight} next_state, current_state = Stop;
+	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight} next_state, prev_state, current_state = Stop;
 	
 //	always_comb begin
 //		if (pixel_count > 15000) begin
@@ -67,9 +67,9 @@ module drive_logic #(
 									  mute_on <= 0;
 									  follow_distance_q <= DEFAULT_DISTANCE;																
 								  end
-				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd100))	// Increment Follow Distance
+				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd100))	// CHANNEL UP: Increment Follow Distance
 																? (follow_distance_q + 7'd10) : follow_distance_q;			
-				32'he11e6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q > 7'd20))		// Decrement Follow Distance
+				32'he11e6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q > 7'd20))		// CHANNEL DOWN: Decrement Follow Distance
 																? (follow_distance_q - 7'd10) : follow_distance_q;			
 			endcase
 		end
@@ -113,7 +113,7 @@ module drive_logic #(
 		
 		if( !no_red ) begin
 		
-			last_direction <= detected_direction;
+			prev_state <= current_state;
 			
 		end
 	end
@@ -128,7 +128,14 @@ module drive_logic #(
 		end
 		else if( no_red ) begin
 		
-			next_state <= ( last_direction < 12 ) ? TurnLeft : TurnRight;
+			case (prev_state)
+				Stop: 		next_state <= Stop;
+				TurnLeft: 	next_state <= TurnLeft;
+				Left: 		next_state <= TurnLeft;
+				Straight: 	next_state <= Stop;
+				Right: 		next_state <= TurnRight;
+				TurnRight:  next_state <= TurnRight;
+			endcase
 			
 		end
 		else if( detected_direction < left_bound ) begin
