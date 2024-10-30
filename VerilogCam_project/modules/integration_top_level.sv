@@ -219,6 +219,7 @@ module integration_top_level (
 	logic echo, trigger;
 	logic pll_clk, locked;
 	logic [7:0] raw_distance;
+	logic [7:0] prev_distance;
 	logic [7:0] avg_distance;
 
 	assign echo = GPIO[34];
@@ -258,6 +259,12 @@ module integration_top_level (
 	  .distance(raw_distance)
 	);
 	  
+	ema_filt ultra_ema_filt (
+		.clk(clk_50),
+		.curr_in(raw_distance),
+		.prev_out(prev_distance),
+		.curr_out(avg_distance)
+	)
 
 	oned_convolution_filt ultra_oned (
 		.clk(clk_50),
