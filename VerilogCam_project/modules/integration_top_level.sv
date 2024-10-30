@@ -66,7 +66,6 @@ module integration_top_level (
 	wire [11:0] rddata;
 	reg  [30:0] vga_data;
 	reg  vga_start, vga_end, vga_ready;
-	reg  [11:0] filtered_data;
 	
 	
 	my_altpll Inst_vga_pll(
@@ -84,8 +83,8 @@ module integration_top_level (
 	 .resend 		(resend),		// in: not connected
 	 .vga_ready    (vga_ready),	// in: vga_ready
 	 .rdaddress 	(rdaddress),	// out: to frame buffer & detect direction
-	 .vga_start    (vga_start),
-	 .vga_end      (vga_end)
+	 .vga_start    (),
+	 .vga_end      ()
    );
 	
 	ov7670_controller Inst_ov7670_controller(
@@ -115,14 +114,6 @@ module integration_top_level (
 	  .wraddress(wraddress[16:0]),
 	  .data(wrdata),
 	  .wren(wren));
-	  
-  image_processor image_inst (
-	 .clk_25_vga(clk_25_vga),
-	 .resend(resend),				// in:
-	 .rddata(rddata),				// in: 
-	 .vga_ready(vga_ready),		// in: from vga
-	 .vga_data(vga_data)			// out: to vga
-  );
   
   vga_scaled vga_init(
 	  .clk_clk(clk_25_vga),                                         		//                                       clk.clk
@@ -272,13 +263,6 @@ module integration_top_level (
 		.new_prev_out(prev_distance),
 		.curr_out(avg_distance)
 	);
-
-//	oned_convolution_filt ultra_oned (
-//		.clk(clk_50),
-//		.reset(reset),
-//		.raw_in(raw_distance),
-//		.avg_out(avg_distance)
-//	);
 	
 	assign LEDR = avg_distance;
   
@@ -287,16 +271,28 @@ module integration_top_level (
   //------------ Direction Detection Start -------//
   
   parameter FOV = 25;
-  reg [$clog2(FOV):0] 	direction;
-  reg [$clog2(FOV):0] 	avg_direction;
+  logic [$clog2(FOV):0] 	direction;
+  logic [$clog2(FOV):0] 	avg_direction;
+  logic [11:0] 				filtered_data;
+  logic [16:0] 				filtered_rdaddress;
+  
+  twod_convolution_filt twod_filt_inst (
+		.clk(clk_25_vga),
+		.rddata(rddata),
+		.rdaddress(rdaddress),
+		.filtered_data(filtered_data)
+  );
   
   detect_direction detect_direction_inst (
 		.clk 			(clk_50),
-		.rdaddress 	(rdaddress),	// in: from address generator
-		.rddata 		(rddata),		// in: from frame buffer
-		.direction 	(direction),	// out: to drive logic
-		.no_red		(no_red),		// out: to drive logic
-		.pixel_count(pixel_count)
+		.rdaddress 	(rdaddress),				// in: from address generator
+		.rddata 		(rddata),			// in: from frame buffer
+		.direction 	(direction),				// out: to drive logic
+		.no_red		(no_red),					// out: to drive logic
+		.pixel_count(pixel_count),				// out: to drive logic
+		.vga_start  (vga_start),
+		.vga_end    (vga_end),
+		.vga_data   (vga_data)
   );
   
   oned_convolution_filt direction_oned (
@@ -306,7 +302,7 @@ module integration_top_level (
 		.avg_out(avg_direction)
 	);
 	
-  assign LEDG[7:1] = avg_direction;
+  assign LEDG[1] = no_red;
   
   //------------ Direction Detection End ---------//
   

@@ -6,7 +6,7 @@ module drive_logic #(
 	parameter IMAGE_WIDTH = 320,
    parameter IMAGE_HEIGHT = 240,
 	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
-	parameter STUN_TIME = 200000000
+	parameter STUN_TIME = 500000000
 	)(
 	input wire                 clk,
 	input wire 						no_red,
@@ -58,7 +58,7 @@ module drive_logic #(
 				32'hfe016b86: difficulty <= 1;																								// 1: Difficult 1 - Easy
 				32'hfd026b86: difficulty <= 2;																								// 2: Difficult 2 - Medium
 				32'hfc036b86: difficulty <= 3;																								// 3: Difficult 3 - Hard
-				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd100))	// CHANNEL UP: Increment Follow Distance
+				32'he51a6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q < 7'd80))		// CHANNEL UP: Increment Follow Distance
 																? (follow_distance_q + 7'd10) : follow_distance_q;			
 				32'he11e6b86: follow_distance_q <= (( last_command != ir_command ) && (follow_distance_q > 7'd20))		// CHANNEL DOWN: Decrement Follow Distance
 																? (follow_distance_q - 7'd10) : follow_distance_q;			
@@ -69,7 +69,10 @@ module drive_logic #(
 	
 	always_ff @(posedge clk) begin: stun_logic
 	
-		if (!mute_on) begin
+		if (mute_on) begin
+			stun_counter <= 0;
+		end
+		else begin
 		
 			if ( amplitude > 50 ) begin
 			
