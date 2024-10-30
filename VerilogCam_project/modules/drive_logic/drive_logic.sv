@@ -6,14 +6,15 @@ module drive_logic #(
 	parameter IMAGE_WIDTH = 320,
    parameter IMAGE_HEIGHT = 240,
 	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
-	parameter STUN_TIME = 500000000
+	parameter STUN_TIME = 500000000,
+	parameter CHARGE_TIME = 500000000
 	)(
 	input wire                 clk,
 	input wire 						no_red,
 	input 	  [ADDR_BITS-1:0] pixel_count,
 	input wire [$clog2(FOV)-1:0] detected_direction,
 	input wire [7:0]           average_distance,
-	input wire [3:0]           pitch,
+	input wire [8:0]           pitch,
 	input wire [10:0]          amplitude,
 	input wire [31:0]				ir_command,
 	input wire						ir_data_ready,
@@ -28,6 +29,9 @@ module drive_logic #(
 	logic [2:0] difficulty = 1;
 	logic stun = 0;
 	logic [$clog2(STUN_TIME)-1:0] stun_counter = 0;
+	logic precharge = 0;
+	logic charge = 0;
+	logic [$clog2(CHARGE_TIME)-1:0] charge_counter = 0;
 	logic too_close;
 	logic [6:0] follow_distance_q = DEFAULT_DISTANCE;
 	logic [4:0] left_bound = DEFAULT_LEFT_BOUND;
@@ -70,15 +74,21 @@ module drive_logic #(
 	always_ff @(posedge clk) begin: stun_logic
 	
 		if (mute_on) begin
+			stun <= 0;
 			stun_counter <= 0;
 		end
 		else begin
 		
-			if ( amplitude > 50 ) begin
+			if ( amplitude > 70 ) begin
 			
-				stun <= 1;
-				stun_counter <= 0;
-				
+				if ( pitch > 46 ) begin: whistle
+					stun <= 1;
+					stun_counter <= 0;
+				end
+				else begin
+					stun <= 0;
+					stun_counter <= 0;
+				end
 			end
 			
 			if (stun) begin
@@ -116,6 +126,28 @@ module drive_logic #(
 	end
 	
 	
+//	always_ff @(posedge clk) begin: charge_logic
+//	
+//		if (prev_state == Straight && current_state == Straight) begin
+//
+//			if (charge_counter < CHARGE_TIME) begin
+//				charge <= 1;
+//				charge_counter <= charge_counter + 1;
+//			end
+//			
+//		end
+//		else begin
+//			charge_counter <= 0;
+//			charge <= 0;
+//		end
+//		
+//	end
+
+//	always_ff @(posedge clk) begin
+//		if (current_state == Charge) begin
+//			charge_counter <= charge_counter 
+	
+	
 	always_ff @(posedge clk) begin : drive_logic
 	
 		if( too_close || bot_off || stun ) begin
@@ -129,12 +161,22 @@ module drive_logic #(
 				Stop: 		next_state <= Stop;
 				TurnLeft: 	next_state <= TurnLeft;
 				Left: 		next_state <= TurnLeft;
-				Straight: 	next_state <= Stop;
+				Straight: 	next_state <= Straight;
 				Right: 		next_state <= TurnRight;
 				TurnRight:  next_state <= TurnRight;
+				
 			endcase
 			
 		end
+//		else if( charge ) begin
+//			if (charge_counter == CHARGE_TIME-2) begin
+//				precharge <= 0;
+//				next_state <= TurnLeft;
+//			end
+//			else begin
+//				next_state <= Straight;
+//			end
+//		end
 		else if( detected_direction < left_bound ) begin
 		
 			next_state <= Left;

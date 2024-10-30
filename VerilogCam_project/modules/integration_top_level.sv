@@ -1,4 +1,4 @@
-module integration_top_level (
+ module integration_top_level (
 		input  wire clk_50,
 		input  wire [17:0] SW,
 
@@ -180,7 +180,7 @@ module integration_top_level (
   
   display num_display (
 	.clk(adc_clk),
-	.value(avg_distance),
+	.value(pitch_output.data),
 	.display0(HEX0),
 	.display1(HEX1),
 	.display2(HEX2),
