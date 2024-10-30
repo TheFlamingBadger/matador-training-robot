@@ -5,7 +5,7 @@ module detect_direction #(
     parameter NUM_DIVISIONS = 3,                    // Number of divisions
     parameter FOV = 25,                             // Camera FOV in degrees
     parameter MAX_SUM = 12249600,                   // 0+1+2+...+319 = 51040, 51040*240=12249600
-    parameter THRESHOLD = 3,								 // The red min detection threshold
+    parameter THRESHOLD = 2,								 // The red min detection threshold
 	 parameter PIXEL_BITS = 12 			
 )(
     input wire                   clk,               // 50 MHz clock signal

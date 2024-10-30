@@ -81,17 +81,20 @@ module drive_logic #(
 				
 			end
 			
-			if (stun_counter > STUN_TIME) begin
+			if (stun) begin
+				if (stun_counter > STUN_TIME) begin
 			
-				stun_counter <= 0;
-				stun <= 0;
+					stun_counter <= 0;
+					stun <= 0;
 				
-			end
-			else begin
+				end
+				else begin
 			
-				stun_counter <= stun_counter + 1;
+					stun_counter <= stun_counter + 1;
 				
+				end
 			end
+
 		end
 	end
 	
