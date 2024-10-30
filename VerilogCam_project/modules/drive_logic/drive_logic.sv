@@ -50,7 +50,7 @@ module drive_logic #(
 //		end
 //	end
 
-//	assign multiplier = 3'd3;
+	assign multiplier = 3'd3;
 	
 	
 	always_ff @(posedge clk) begin : ir_logic
