@@ -23,7 +23,7 @@ module drive_logic #(
 	output [2:0]					multiplier
 );
 	
-	logic bot_off = 0;
+	logic bot_off = 1;
 	logic mute_on = 0;
 	logic stun = 0;
 	logic [$clog2(STUN_TIME)-1:0] stun_counter = 0;
@@ -36,19 +36,21 @@ module drive_logic #(
 	
 	assign follow_distance = follow_distance_q;
 	
-	enum logic [2:0] {Stop, Fast_left, Left, Straight, Right, Fast_right} next_state, current_state = Stop;
+	enum logic [2:0] {Stop, TurnLeft, Left, Straight, Right, TurnRight} next_state, current_state = Stop;
 	
-	always_comb begin
-		if (pixel_count > 15000) begin
-			multiplier = 3;
-		end
-		else if (pixel_count > 5000) begin
-			multiplier = 2;
-		end
-		else begin
-			multiplier = 1;
-		end
-	end
+//	always_comb begin
+//		if (pixel_count > 15000) begin
+//			multiplier = 3;
+//		end
+//		else if (pixel_count > 5000) begin
+//			multiplier = 2;
+//		end
+//		else begin
+//			multiplier = 1;
+//		end
+//	end
+
+//	assign multiplier = 3'd3;
 	
 	
 	always_ff @(posedge clk) begin : ir_logic
@@ -126,7 +128,7 @@ module drive_logic #(
 		end
 		else if( no_red ) begin
 		
-			next_state <= ( last_direction < 12 ) ? Left : Right;
+			next_state <= ( last_direction < 12 ) ? TurnLeft : TurnRight;
 			
 		end
 		else if( detected_direction < left_bound ) begin
@@ -153,11 +155,11 @@ module drive_logic #(
 	always_comb begin
 		case (current_state)
 			Stop: 		drive_command = 0;
-			Fast_left: 	drive_command = 1;
+			TurnLeft: 	drive_command = 1;
 			Left: 		drive_command = 2;
 			Straight: 	drive_command = 3;
 			Right: 		drive_command = 4;
-			Fast_right: drive_command = 5;
+			TurnRight:  drive_command = 5;
 		endcase 
 	end
 	

@@ -19,8 +19,8 @@ module command_translator (
 					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd1: begin
-				     // Hard Left - {"T":1,"L":-0.50,"R":-0.20}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
+				     // Hard Left - {"T":1,"L":-0.20,"R":00.20}
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 3'd2: begin
 				     // Left
@@ -50,8 +50,8 @@ module command_translator (
 					 
 				 end
 				 3'd5: begin
-				     // Hard Right - {"T":1,"L":-0.20,"R":-0.50}
-					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h35, 8'h30, 8'h7d, 8'h0a};
+				     // Hard Right - {"T":1,"L":00.20,"R":-0.20}
+					  json_command = '{8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h32, 8'h30, 8'h7d, 8'h0a};
 				 end
 				 default: begin
 				     // STOP - {"T":0,"L":00.00,"R":00.00}
