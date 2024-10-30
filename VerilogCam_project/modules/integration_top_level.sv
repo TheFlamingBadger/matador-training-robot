@@ -173,6 +173,7 @@
 	logic [10:0] amp_mag;
 
 	assign amp_mag = magnitude/1000000;		// To drive logic
+	
 
   //------------ Microphone End ------------------//
   
@@ -180,7 +181,7 @@
   
   display num_display (
 	.clk(adc_clk),
-	.value(pitch_output.data),
+	.value(avg_distance),
 	.display0(HEX0),
 	.display1(HEX1),
 	.display2(HEX2),
@@ -263,8 +264,6 @@
 		.new_prev_out(prev_distance),
 		.curr_out(avg_distance)
 	);
-	
-	assign LEDR = avg_distance;
   
   //------------ Ultrasonic Sensor End -----------//
   
@@ -317,6 +316,7 @@
   wire [2:0] command;
   wire [7:0] follow_dist;
   wire [2:0] difficulty;
+  wire noise_registered;
 
   
   drive_logic drive_logic_inst (
@@ -332,8 +332,15 @@
 		.drive_command      (command),				// out: to command translator
 		.follow_distance	  (follow_dist),			// out: to lcd display
 		.valid              (valid),					// out: to command translator
-		.difficulty_disp	  (difficulty)				// out: to command translator
+		.difficulty_disp	  (difficulty),			// out: to command translator
+		.noise_registered   (noise_registered)		// out: to ledrs
 	);
+	
+	always_comb begin
+		for( int i=0; i<18; i++ ) begin
+			LEDR[i] = noise_registered;
+		end
+	end
   
   //------------ Drive Logic End -----------------//
   
