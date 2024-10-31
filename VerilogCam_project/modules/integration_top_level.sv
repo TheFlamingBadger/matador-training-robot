@@ -256,14 +256,24 @@
 	  .distance(raw_distance)
 	);
 	  
-	ema_filt ultra_ema_filt (
-		.clk(clk_50),
-		.reset(reset),
-		.curr_in(raw_distance),
-		.prev_out(prev_distance),
-		.new_prev_out(prev_distance),
-		.curr_out(avg_distance)
+//	ema_filt ultra_ema_filt (
+//		.clk(clk_50),
+//		.reset(reset),
+//		.curr_in(raw_distance),
+//		.prev_out(prev_distance),
+//		.new_prev_out(prev_distance),
+//		.curr_out(avg_distance)
+//	);
+	
+		my_softcore Ultrasonic_DSP(
+	
+		.clk_clk(clk_50),
+		.pio_out_external_connection_in_port(raw_distance),
+		.pio_out_external_connection_out_port(avg_distance),
+		.reset_reset_n(1) // maybe change to reset
 	);
+	
+	
   
   //------------ Ultrasonic Sensor End -----------//
   

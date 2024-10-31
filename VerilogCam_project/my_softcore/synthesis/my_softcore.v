@@ -16,14 +16,12 @@ module my_softcore (
 	wire  [19:0] cpu_data_master_address;                              // cpu:d_address -> mm_interconnect_0:cpu_data_master_address
 	wire   [3:0] cpu_data_master_byteenable;                           // cpu:d_byteenable -> mm_interconnect_0:cpu_data_master_byteenable
 	wire         cpu_data_master_read;                                 // cpu:d_read -> mm_interconnect_0:cpu_data_master_read
-	wire         cpu_data_master_readdatavalid;                        // mm_interconnect_0:cpu_data_master_readdatavalid -> cpu:d_readdatavalid
 	wire         cpu_data_master_write;                                // cpu:d_write -> mm_interconnect_0:cpu_data_master_write
 	wire  [31:0] cpu_data_master_writedata;                            // cpu:d_writedata -> mm_interconnect_0:cpu_data_master_writedata
 	wire  [31:0] cpu_instruction_master_readdata;                      // mm_interconnect_0:cpu_instruction_master_readdata -> cpu:i_readdata
 	wire         cpu_instruction_master_waitrequest;                   // mm_interconnect_0:cpu_instruction_master_waitrequest -> cpu:i_waitrequest
 	wire  [19:0] cpu_instruction_master_address;                       // cpu:i_address -> mm_interconnect_0:cpu_instruction_master_address
 	wire         cpu_instruction_master_read;                          // cpu:i_read -> mm_interconnect_0:cpu_instruction_master_read
-	wire         cpu_instruction_master_readdatavalid;                 // mm_interconnect_0:cpu_instruction_master_readdatavalid -> cpu:i_readdatavalid
 	wire         mm_interconnect_0_jtag_avalon_jtag_slave_chipselect;  // mm_interconnect_0:jtag_avalon_jtag_slave_chipselect -> jtag:av_chipselect
 	wire  [31:0] mm_interconnect_0_jtag_avalon_jtag_slave_readdata;    // jtag:av_readdata -> mm_interconnect_0:jtag_avalon_jtag_slave_readdata
 	wire         mm_interconnect_0_jtag_avalon_jtag_slave_waitrequest; // jtag:av_waitrequest -> mm_interconnect_0:jtag_avalon_jtag_slave_waitrequest
@@ -82,13 +80,11 @@ module my_softcore (
 		.d_waitrequest                       (cpu_data_master_waitrequest),                       //                          .waitrequest
 		.d_write                             (cpu_data_master_write),                             //                          .write
 		.d_writedata                         (cpu_data_master_writedata),                         //                          .writedata
-		.d_readdatavalid                     (cpu_data_master_readdatavalid),                     //                          .readdatavalid
 		.debug_mem_slave_debugaccess_to_roms (cpu_data_master_debugaccess),                       //                          .debugaccess
 		.i_address                           (cpu_instruction_master_address),                    //        instruction_master.address
 		.i_read                              (cpu_instruction_master_read),                       //                          .read
 		.i_readdata                          (cpu_instruction_master_readdata),                   //                          .readdata
 		.i_waitrequest                       (cpu_instruction_master_waitrequest),                //                          .waitrequest
-		.i_readdatavalid                     (cpu_instruction_master_readdatavalid),              //                          .readdatavalid
 		.irq                                 (cpu_irq_irq),                                       //                       irq.irq
 		.debug_reset_request                 (cpu_debug_reset_request_reset),                     //       debug_reset_request.reset
 		.debug_mem_slave_address             (mm_interconnect_0_cpu_debug_mem_slave_address),     //           debug_mem_slave.address
@@ -135,7 +131,6 @@ module my_softcore (
 		.cpu_data_master_byteenable            (cpu_data_master_byteenable),                           //                                .byteenable
 		.cpu_data_master_read                  (cpu_data_master_read),                                 //                                .read
 		.cpu_data_master_readdata              (cpu_data_master_readdata),                             //                                .readdata
-		.cpu_data_master_readdatavalid         (cpu_data_master_readdatavalid),                        //                                .readdatavalid
 		.cpu_data_master_write                 (cpu_data_master_write),                                //                                .write
 		.cpu_data_master_writedata             (cpu_data_master_writedata),                            //                                .writedata
 		.cpu_data_master_debugaccess           (cpu_data_master_debugaccess),                          //                                .debugaccess
@@ -143,7 +138,6 @@ module my_softcore (
 		.cpu_instruction_master_waitrequest    (cpu_instruction_master_waitrequest),                   //                                .waitrequest
 		.cpu_instruction_master_read           (cpu_instruction_master_read),                          //                                .read
 		.cpu_instruction_master_readdata       (cpu_instruction_master_readdata),                      //                                .readdata
-		.cpu_instruction_master_readdatavalid  (cpu_instruction_master_readdatavalid),                 //                                .readdatavalid
 		.cpu_debug_mem_slave_address           (mm_interconnect_0_cpu_debug_mem_slave_address),        //             cpu_debug_mem_slave.address
 		.cpu_debug_mem_slave_write             (mm_interconnect_0_cpu_debug_mem_slave_write),          //                                .write
 		.cpu_debug_mem_slave_read              (mm_interconnect_0_cpu_debug_mem_slave_read),           //                                .read

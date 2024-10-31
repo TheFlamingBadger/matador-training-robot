@@ -1,0 +1,89 @@
+/*
+ * main.c
+ *
+ *  Created on: 30 Oct 2024
+ *      Author: joshn
+ */
+
+#include <stdio.h>
+#include <math.h>
+#include "system.h"
+#include "altera_avalon_pio_regs.h"
+
+#define NUM_INITIAL_READINGS 50  // Number of readings to gather initially
+#define OUTLIER_THRESHOLD 2.0f   // Threshold for considering a reading as an outlier (in standard deviations)
+#define PIO_OUT_BASE 0x81040
+
+// Function prototypes
+float exponential_averaging(float current_distance, float previous_average, float alpha);
+float read_distance_from_pio();
+float calculate_mean(float readings[], int num_readings);
+float calculate_stddev(float readings[], int num_readings, float mean);
+
+// Exponential averaging function
+float exponential_averaging(float current_distance, float previous_average, float alpha) {
+    return alpha * current_distance + (1 - alpha) * previous_average;
+}
+
+// Function to read distance from PIO
+float read_distance_from_pio() {
+    return (float) IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);  // Read distance data from PIO
+}
+
+// Calculate mean of an array
+float calculate_mean(float readings[], int num_readings) {
+    float sum = 0.0f;
+    for (int i = 0; i < num_readings; i++) {
+        sum += readings[i];
+    }
+    return sum / num_readings;
+}
+
+// Calculate standard deviation of an array
+float calculate_stddev(float readings[], int num_readings, float mean) {
+    float sum_squared_diff = 0.0f;
+    for (int i = 0; i < num_readings; i++) {
+        sum_squared_diff += (readings[i] - mean) * (readings[i] - mean);
+    }
+    return sqrt(sum_squared_diff / num_readings);
+}
+
+int main() {
+    float alpha = 0.1f;  // Smoothing factor
+    float previous_average = 0.0f;  // Initial average value
+    float initial_readings[NUM_INITIAL_READINGS];
+    int num_readings = 0;
+
+    // Gather initial readings to calculate mean and standard deviation
+    while (num_readings < NUM_INITIAL_READINGS) {
+        initial_readings[num_readings++] = read_distance_from_pio();
+    }
+
+    // Calculate initial mean and standard deviation
+    float mean = calculate_mean(initial_readings, NUM_INITIAL_READINGS);
+    float stddev = calculate_stddev(initial_readings, NUM_INITIAL_READINGS, mean);
+
+    // Process distance readings continuously
+    while (1) {
+        // Read the current distance from PIO
+        float current_distance = read_distance_from_pio();
+
+        // Check if the current distance is within the acceptable range
+        if (fabs(current_distance - mean) <= OUTLIER_THRESHOLD * stddev) {
+            // If the reading is not an outlier, update the exponential average
+            previous_average = exponential_averaging(current_distance, previous_average, alpha);
+
+            IOWR_ALTERA_AVALON_PIO_DIRECTION(PIO_OUT_BASE, previous_average);
+
+
+            printf("Smoothed Distance (No Outliers): %.2f\n", previous_average);
+        } else {
+            printf("Outlier detected: %.2f (ignored)\n", current_distance);
+        }
+
+        // Delay or wait for the next reading (adjust timing as needed)
+        usleep(100000); // Sleep for 100ms, include unistd.h if needed
+    }
+
+    return 0;
+}

@@ -1,0 +1,6 @@
+10:13:21 **** Clean-only build of configuration Nios II for project Ultrasonic_BSP ****
+wsl make clean 
+[BSP clean complete]
+
+10:13:22 Build Finished (took 515ms)
+

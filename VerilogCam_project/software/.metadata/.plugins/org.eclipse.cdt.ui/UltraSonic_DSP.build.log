@@ -1,0 +1,9 @@
+10:02:25 **** Incremental Build of configuration Nios II for project UltraSonic_DSP ****
+wsl make all 
+Info: Building /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/DSP_BSP/
+make --no-print-directory -C /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/DSP_BSP/
+[BSP build complete]
+[UltraSonic_DSP build complete]
+
+10:02:26 Build Finished (took 812ms)
+

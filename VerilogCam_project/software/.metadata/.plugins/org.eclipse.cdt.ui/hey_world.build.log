@@ -1,0 +1,9 @@
+16:21:13 **** Build of configuration Nios II for project hey_world ****
+wsl make all 
+Info: Building /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/hey_world_bsp/
+make --no-print-directory -C /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/hey_world_bsp/
+[BSP build complete]
+[hey_world build complete]
+
+16:21:14 Build Finished (took 1s.142ms)
+

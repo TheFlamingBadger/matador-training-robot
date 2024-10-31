@@ -1,0 +1,9 @@
+11:00:51 **** Incremental Build of configuration Nios II for project 123456789 ****
+wsl make all 
+Info: Building /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/1234_BSP/
+make --no-print-directory -C /mnt/c/Users/joshn/iCloudDrive/Desktop/Uni/MTRX3700/Major-Project/mtrx3700-major-project/VerilogCam_project/software/1234_BSP/
+[BSP build complete]
+[123456789 build complete]
+
+11:00:52 Build Finished (took 965ms)
+
