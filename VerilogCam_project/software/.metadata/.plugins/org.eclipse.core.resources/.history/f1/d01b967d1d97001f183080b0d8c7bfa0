@@ -76,12 +76,12 @@ int main(void) {
 
             previous_average = exponential_averaging(filtered_value, previous_average, 0.1f);
 
-//            printf("%f\n", previous_average);
+            printf("%f\n", previous_average);
 
             // Write the pio out and cast to an int
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, (int)previous_average);
         } else {
-//            printf("Outlier detected: %f\n", input);
+            printf("Outlier detected: %f\n", input);
         }
 
         usleep(1000);

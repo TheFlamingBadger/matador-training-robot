@@ -6,6 +6,39 @@
 //// */
 ////
 
+//
+//#include <stdio.h>
+//#include <unistd.h>  // For usleep
+//#include <stdint.h>
+//#include "system.h"
+//#include "altera_avalon_pio_regs.h"
+//
+//#define OUTLIER_THRESHOLD 3.0f   // Threshold for considering a reading as an outlier (in standard deviations)
+//#define PIO_OUT_BASE 0x81040
+//
+//// Exponential averaging function
+//float exponential_averaging(float current_distance, float previous_average, float alpha) {
+//    return alpha * current_distance + (1 - alpha) * previous_average;
+//}
+//
+//int main(void){
+//
+//	float input = 0;
+//	float previous_average = 0;
+//
+//	while(1){
+//		input = (float)IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);
+//		previous_average = exponential_averaging(input, previous_average, .1);
+//
+//		printf("%f\n", previous_average);
+//
+//		IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, previous_average);
+//
+//		usleep(1000);
+//	}
+//
+//}
+
 #include <stdio.h>
 #include <unistd.h>  // For usleep
 #include <stdint.h>
@@ -13,18 +46,18 @@
 #include "system.h"
 #include "altera_avalon_pio_regs.h"
 
-#define OUTLIER_THRESHOLD 3.0f
+#define OUTLIER_THRESHOLD 3.0f   // Threshold for outlier detection in standard deviations
 #define PIO_OUT_BASE 0x81040
-#define MEDIAN_FILTER_WINDOW 5   //window size for median filter
+#define MEDIAN_FILTER_WINDOW 5   // Window size for median filter
 
-// exponential averaging function
+// Function for exponential averaging
 float exponential_averaging(float current_distance, float previous_average, float alpha) {
     return alpha * current_distance + (1 - alpha) * previous_average;
 }
 
-// calculate the median of a window
+// Helper function to calculate the median of a small window
 float calculate_median(float *window, int size) {
-    //sorting algorithim for median calculation
+    // Simple bubble sort to sort window for median calculation
     for (int i = 0; i < size - 1; i++) {
         for (int j = i + 1; j < size; j++) {
             if (window[i] > window[j]) {
@@ -37,7 +70,8 @@ float calculate_median(float *window, int size) {
     // Return median
     return window[size / 2];
 }
-// function to see if outlier, return bool
+
+// Function to detect if a value is an outlier
 int is_outlier(float value, float average, float stddev) {
     return fabs(value - average) > (OUTLIER_THRESHOLD * stddev);
 }
@@ -51,6 +85,7 @@ int main(void) {
     float sum = 0, sum_sq = 0;
 
     while (1) {
+        // Read the sensor data
         input = (float)IORD_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE);
 
         // Calculate rolling mean and standard deviation
@@ -68,22 +103,25 @@ int main(void) {
             window[window_index] = input;
             window_index = (window_index + 1) % MEDIAN_FILTER_WINDOW;
 
-            //if enough readings are available apply median filter
+            // Apply median filter if enough readings are available
             float filtered_value = input;
             if (count >= MEDIAN_FILTER_WINDOW) {
                 filtered_value = calculate_median(window, MEDIAN_FILTER_WINDOW);
             }
 
+            // Exponential averaging
             previous_average = exponential_averaging(filtered_value, previous_average, 0.1f);
 
-//            printf("%f\n", previous_average);
+            // Output the filtered average
+            printf("%f\n", previous_average);
 
-            // Write the pio out and cast to an int
+            // Write the result back
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, (int)previous_average);
         } else {
-//            printf("Outlier detected: %f\n", input);
+            printf("Outlier detected: %f\n", input);
         }
 
+        // Sleep to avoid high-frequency sampling
         usleep(1000);
     }
 }

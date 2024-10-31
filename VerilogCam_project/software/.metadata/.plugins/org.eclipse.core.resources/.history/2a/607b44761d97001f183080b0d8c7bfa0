@@ -68,7 +68,7 @@ int main(void) {
             window[window_index] = input;
             window_index = (window_index + 1) % MEDIAN_FILTER_WINDOW;
 
-            //if enough readings are available apply median filter
+            // Apply median filter if enough readings are available
             float filtered_value = input;
             if (count >= MEDIAN_FILTER_WINDOW) {
                 filtered_value = calculate_median(window, MEDIAN_FILTER_WINDOW);
@@ -76,14 +76,15 @@ int main(void) {
 
             previous_average = exponential_averaging(filtered_value, previous_average, 0.1f);
 
-//            printf("%f\n", previous_average);
+            printf("%f\n", previous_average);
 
             // Write the pio out and cast to an int
             IOWR_ALTERA_AVALON_PIO_DATA(PIO_OUT_BASE, (int)previous_average);
         } else {
-//            printf("Outlier detected: %f\n", input);
+            printf("Outlier detected: %f\n", input);
         }
 
+        // Sleep to avoid high-frequency sampling
         usleep(1000);
     }
 }
