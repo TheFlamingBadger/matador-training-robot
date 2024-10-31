@@ -1268,4 +1268,5 @@ set_global_assignment -name SIGNALTAP_FILE signal_tap_vga_face.stp
 set_global_assignment -name SYSTEMVERILOG_FILE modules/convolution_filt/convolution_filt.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/1d_convolution/oned_convolution_filt_tb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE modules/1d_convolution/oned_convolution_filt.sv
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

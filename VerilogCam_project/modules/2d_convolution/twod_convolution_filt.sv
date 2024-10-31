@@ -10,6 +10,7 @@ module twod_convolution_filt #(
     input wire 						clk,
 	 input wire [PIXEL_BITS-1:0] 	rddata,
 	 input wire [ADDR_BITS-1:0] 	rdaddress,
+	 output		[ADDR_BITS-1:0]	delayed_address,
 	 output 		[PIXEL_BITS-1:0] 	filtered_data,
 	 output								vga_start,
 	 output								vga_end,
@@ -23,6 +24,8 @@ module twod_convolution_filt #(
     int row_old = 0;
 	 
 	 assign filtered_data = filtered_data_q;
+	 
+	 assign delayed_address = ( rdaddress < 321 ) ? IMAGE_WIDTH*IMAGE_HEIGHT - 321 - 1 : rdaddress - 321;
 	 
 	 always_ff @(posedge clk) begin: build_shift_registers
 	 

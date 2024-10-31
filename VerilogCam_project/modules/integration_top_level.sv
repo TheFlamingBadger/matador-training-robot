@@ -283,19 +283,20 @@
   logic [$clog2(FOV):0] 	direction;
   logic [$clog2(FOV):0] 	avg_direction;
   logic [11:0] 				filtered_data;
-  logic [16:0] 				filtered_rdaddress;
+  logic [16:0] 				delayed_address;
   
   twod_convolution_filt twod_filt_inst (
 		.clk(clk_25_vga),
 		.rddata(rddata),
 		.rdaddress(rdaddress),
-		.filtered_data(filtered_data)
+		.filtered_data(filtered_data),
+		.delayed_address(delayed_address)
   );
   
   detect_direction detect_direction_inst (
 		.clk 			(clk_50),
-		.rdaddress 	(rdaddress),				// in: from address generator
-		.rddata 		(rddata),			// in: from frame buffer
+		.rdaddress 	(delayed_address),		// in: from address generator
+		.rddata 		(filtered_data),			// in: from frame buffer
 		.direction 	(direction),				// out: to drive logic
 		.no_red		(no_red),					// out: to drive logic
 		.pixel_count(pixel_count),				// out: to drive logic
