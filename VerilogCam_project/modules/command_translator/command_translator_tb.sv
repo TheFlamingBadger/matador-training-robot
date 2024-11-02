@@ -36,14 +36,14 @@ module command_translator_tb;
         valid = 1;
         uart_ready = 1;
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h30, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
         command = 0;
         difficulty = 1;
         #5
         for (int j = 0; j < 28; j++) begin
             #10
             if (cmd_ready) begin
-                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+                final_string[((27 - j) * 8) +: 8] = ascii_out; // Concatenate characters
             end
         end
         assert (final_string == expected_final_string) else $fatal("command 0 JSON failed");
@@ -52,14 +52,14 @@ module command_translator_tb;
         
         // CHANGE COMMAND
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h35, 8'h30, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h31, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h31, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h30, 8'h35, 8'h7d, 8'h0a};
         command = 2;
         difficulty = 1;
         #5
         for (int j = 0; j < 28; j++) begin
             #10
             if (cmd_ready) begin
-                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+                final_string[((27 - j) * 8) +: 8] = ascii_out; // Concatenate characters
             end
         end
         assert (final_string == expected_final_string) else $fatal("change to command 2 JSON failed");
@@ -68,14 +68,14 @@ module command_translator_tb;
 
         // DIFFERENT DIFFICULTY
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h35, 8'h31, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h31, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h31, 8'h35, 8'h7d, 8'h0a};
         command = 2;
         difficulty = 3;
         #5
         for (int j = 0; j < 28; j++) begin
             #10
             if (cmd_ready) begin
-                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+                final_string[((27 - j) * 8) +: 8] = ascii_out; // Concatenate characters
             end
         end
         assert (final_string == expected_final_string) else $fatal("change to difficulty 3 JSON failed");
@@ -84,30 +84,30 @@ module command_translator_tb;
 
         // DEFAULTING OPERATION FOR UNKNOWN COMMAND
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h30, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h30, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h30, 8'h30, 8'h2e, 8'h30, 8'h30, 8'h7d, 8'h0a};
         command = 7;
         difficulty = 1;
         #5
         for (int j = 0; j < 28; j++) begin
             #10
             if (cmd_ready) begin
-                final_string[(j*8) +: 8] = ascii_out;   // Concatenate characters
+                final_string[((27 - j) * 8) +: 8] = ascii_out;   // Concatenate characters
             end
         end
         assert (final_string == expected_final_string) else $fatal("Default JSON failed");
         
         #5
 
-        // TRANSMISSION INTERRUPTED BY CHANGE IN COMMAND
+        // TRANSMISSION NOT INTERRUPTED BY CHANGE IN COMMAND
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h31, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h7b, 8'h22, 8'h54, 8'h22, 8'h3a, 8'h31, 8'h2c, 8'h22, 8'h4c, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h2c, 8'h22, 8'h52, 8'h22, 8'h3a, 8'h2d, 8'h30, 8'h2e, 8'h33, 8'h30, 8'h7d, 8'h0a};
         command = 3;
         difficulty = 2;
         #5
         for (int j = 0; j < 28; j++) begin
             #10
             if (cmd_ready) begin
-                final_string[(j*8) +: 8] = ascii_out; // Concatenate characters
+                final_string[((27 - j) * 8) +: 8] = ascii_out; // Concatenate characters
             end
             if (j == 20) begin
                 command = 1;                            
