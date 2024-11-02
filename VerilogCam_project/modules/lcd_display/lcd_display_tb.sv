@@ -1,25 +1,26 @@
 module lcd_display_tb;
 
-    // Parameters
-	parameter FOV = 25;
-
-    // Control & Drive Logic Signals
-    input  logic clk;
-    input  logic reset;
-    input  logic [2:0] command;
-    input  logic [$clog2(FOV):0] direction;
-    input  logic [7:0] distance;
+    // Control & drive logic signals
+    logic       clk;
+    logic       reset;
+    logic [2:0] command;
+    logic [4:0] direction;
+    logic [7:0] distance;
 
     // Avalon-MM signals to LCD_Controller slave:
-    output logic address;
-    output logic chipselect;
-    output logic byteenable;
-    output logic read;
-    output logic write;
-    input  logic waitrequest;
-    input  logic [7:0] readdata;
-    input  logic [1:0] response;
-    output logic [7:0] writedata;
+    logic       address;
+    logic       chipselect;
+    logic       byteenable;
+    logic       read;
+    logic       write;
+    logic       waitrequest;
+    logic [7:0] readdata;
+    logic [1:0] response;
+    logic [7:0] writedata;
+
+    // Testbench variables
+    localparam N_INSTRS = 18;
+    logic [8:0] instructions [N_INSTRS];
 
     // Instantiate device under test
     lcd_display dut (
@@ -47,116 +48,53 @@ module lcd_display_tb;
 
     // Test vectors
     initial begin
-        $dumpfile("a_waveform.vcd"); // File name
+        $dumpfile("waveform.vcd"); // File name
         $dumpvars(0, lcd_display_tb); // Select all variables in the current scope
         
         // Initialize state and inputs
-        reset = 0;
+        reset = 1;
         command = 0;
         direction = 0;
         distance = 0;
 
-        #2000
-        // // Test 1: "Filter #" outputs correctly
-        // #5
-        // assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        // #10
-        // assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        // #10
-        // assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        // #10
-        // assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        // #10
-        // assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        // #10
-        // assert( {address, writedata} == _1 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '1'.", writedata);
+        // Test 1: "Cmd:0 B:00 D:00" outputs for zeroed inputs
+        #20
+        reset = 0;
+        instructions = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _0, _SPACE, _B, _COLON, _0, _0, _SPACE, _D, _COLON, _0, _0, _0};
+        for( int i=0; i<N_INSTRS; i++) begin
+            #10
+            assert( {address, writedata} == instructions[i] ) else $fatal("Wrong character asserted: '%c'", writedata); 
+        end
 
-        // // Test 2: "Filter #" outputs correctly
-        // filter_number = 1;
-        // #5
-        // assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        // #10
-        // assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        // #10
-        // assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        // #10
-        // assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        // #10
-        // assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        // #10
-        // assert( {address, writedata} == _1 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '1'.", writedata);
+        reset = 1;
+        command = 3;
+        direction = 12;
+        distance = 89;
 
-        // // Test 3: "Filter #" outputs correctly
-        // filter_number = 2;
-        // #10
-        // assert( {address, writedata} == CLEAR_DISPLAY ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of clear display.", writedata);
-        // #10
-        // assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        // #10
-        // assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        // #10
-        // assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        // #10
-        // assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        // #10
-        // assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        // #10
-        // assert( {address, writedata} == _2 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '2'.", writedata);
+        // Test 2: "Cmd:3 B:12 D:89" outputs for in range values
+        #10
+        reset = 0;
+        instructions = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _3, _SPACE, _B, _COLON, _1, _2, _SPACE, _D, _COLON, _0, _8, _9};
+        for( int i=0; i<N_INSTRS; i++) begin
+            #10
+            assert( {address, writedata} == instructions[i] ) else $fatal("Wrong character asserted: '%c'", writedata); 
+        end
 
-        // // Test 4: "Filter #" outputs correctly
-        // filter_number = 3;
-        // #10
-        // assert( {address, writedata} == CLEAR_DISPLAY ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of clear display.", writedata);
-        // #10
-        // assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        // #10
-        // assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        // #10
-        // assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        // #10
-        // assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        // #10
-        // assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        // #10
-        // assert( {address, writedata} == _3 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '3'.", writedata);
+        reset = 1;
+        command = 7;
+        direction = 31;
+        distance = 255;
 
-        // // Test 5: "Filter #" outputs correctly
-        // filter_number = 4;
-        // #10
-        // assert( {address, writedata} == CLEAR_DISPLAY ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of clear display.", writedata);
-        // #10
-        // assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        // #10
-        // assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        // #10
-        // assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        // #10
-        // assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        // #10
-        // assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        // #10
-        // assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        // #10
-        // assert( {address, writedata} == _4 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '4'.", writedata);
+        // Test 4: Output of range values as #
+        #10
+        reset = 0;
+        instructions = '{CLEAR_DISPLAY, CURSOR_OFF, _C, _m, _d, _COLON, _HASH, _SPACE, _B, _COLON, _3, _1, _SPACE, _D, _COLON, _2, _5, _5};
+        for( int i=0; i<N_INSTRS; i++) begin
+            #10
+            assert( {address, writedata} == instructions[i] ) else $fatal("Wrong character asserted: '%c'", writedata); 
+        end
 
+        #10
         $finish;
     end
 

@@ -138,8 +138,8 @@ module lcd_display #(
     always_comb begin : fsm_next_state
         case( current_state ) 
             IDLE:       next_state = ( instruction_index < N_INSTRS ) ? WRITE_OP : IDLE;
-//            WRITE_OP:   next_state = ( waitrequest || ( instruction_index >= N_INSTRS-1 )) ? IDLE : WRITE_OP;
-				  WRITE_OP:   next_state = ( waitrequest ) ? WRITE_OP : IDLE;
+           WRITE_OP:   next_state = ( waitrequest || ( instruction_index >= N_INSTRS-1 )) ? IDLE : WRITE_OP;
+				//   WRITE_OP:   next_state = ( waitrequest ) ? WRITE_OP : IDLE;
             default:    next_state = IDLE;
         endcase
     end
