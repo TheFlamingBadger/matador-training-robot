@@ -6,13 +6,13 @@ module tb_oned_convolution_filt;
     reg clk;
     reg reset;
     reg [7:0] distance;    // 8-bit input data
-    wire [7:0] avg_out;     // Output average from the convolution filter
+    wire [7:0] avg_out;    // Output average from the convolution filter
 
     // Instantiate the oned_convolution_filt module
     oned_convolution_filt uut (
         .clk(clk),
         .reset(reset),
-        .distance(distance),
+        .raw_in(distance),  // Ensure this matches your module's input name
         .avg_out(avg_out)
     );
 
@@ -23,6 +23,9 @@ module tb_oned_convolution_filt;
 
     // Testbench initialization
     initial begin
+        $dumpfile("waveform.vcd");
+        $dumpvars();
+
         // Initialize signals
         clk = 0;
         reset = 0;
@@ -73,6 +76,6 @@ module tb_oned_convolution_filt;
         $display("After reset - Input: %d, Output: %d", distance, avg_out);
         
         // End the simulation
-        $stop;
+        $finish; // Use $finish instead of $stop to ensure complete simulation and waveform capture
     end
 endmodule
