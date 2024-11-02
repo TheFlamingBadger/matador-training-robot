@@ -12,7 +12,8 @@ module command_translator (
     int command_length;
 
     always_comb begin
-        // Construct JSON string based on command
+		if (ready) begin
+			// Construct JSON string based on command
 			case(command)
 				 3'd0: begin
 					  // Stop - {"T":0,"L":00.00,"R":00.00}
@@ -80,6 +81,7 @@ module command_translator (
 				 end
 			endcase
 			command_length = 28;  // Total length of the command
+		end
     end
 
     int i = 0;

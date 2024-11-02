@@ -100,7 +100,7 @@ module command_translator_tb;
 
         // TRANSMISSION INTERRUPTED BY CHANGE IN COMMAND
         final_string = 224'b0;
-        expected_final_string = {8'h0a, 8'h7d, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h30, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h31, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
+        expected_final_string = {8'h0a, 8'h7d, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h52, 8'h22, 8'h2c, 8'h30, 8'h33, 8'h2e, 8'h30, 8'h2d, 8'h3a, 8'h22, 8'h4c, 8'h22, 8'h2c, 8'h31, 8'h3a, 8'h22, 8'h54, 8'h22, 8'h7b};
         command = 3;
         difficulty = 2;
         #5
