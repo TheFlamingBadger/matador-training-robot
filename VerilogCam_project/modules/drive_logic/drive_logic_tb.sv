@@ -4,26 +4,35 @@ module drive_logic_tb();
 parameter FOV = 25;
 
 logic clk;
-logic [4:0] 	detected_direction;
-logic [7:0]   average_distance;
-logic [8:0]   pitch;
-logic [10:0]  amplitude;
-logic [31:0]	ir_command;
-logic [2:0] drive_command;
-logic [7:0]	follow_distance;
-logic no_red;
-logic [6:0] follow_distance_q;
+logic [4:0]  detected_direction;
+logic [7:0]  average_distance;
+logic [8:0]  pitch;
+logic [10:0] amplitude;
+logic [31:0] ir_command;
+logic [2:0]  drive_command;
+logic [7:0]	 follow_distance;
+logic 		 no_red;
+logic	     ir_data_ready;
+logic [6:0]  follow_distance_q;
+logic [2:0]  difficulty_disp;
+logic		 noise_registered;
 
 logic valid;
 
-sensor_driver u0(
+drive_logic dut (
     .clk(clk),
     .detected_direction(detected_direction),
     .average_distance(average_distance),
     .pitch(pitch),
     .amplitude(amplitude),
     .drive_command(drive_command),
-	 .valid(valid)
+	.valid(valid),
+	.no_red(no_red),
+	.ir_command(ir_command),
+	.ir_data_ready(ir_data_ready),
+	.follow_distance(follow_distance),
+	.difficulty_disp(difficulty_disp),
+	.noise_registered(noise_registered)
 );
 
 
@@ -35,6 +44,10 @@ always begin
 end
   
 initial begin
+	$dumpfile("waveform.vcd"); // File name
+	$dumpvars(0, dut); // Select all variables in the current scope
+        
+	// Initialise variables
 	detected_direction = 12;
 	pitch = 0;
 	amplitude = 0;
@@ -51,6 +64,7 @@ initial begin
 	end
 	
 	ir_command = 32'he9166b86;
+	ir_data_ready = 1;
 	
 	for (int i = 0; i < 5; i++) begin
 		#100
@@ -69,7 +83,7 @@ initial begin
 	
 	for (int i = 0; i < 5; i++) begin
 		#100
-		assert(drive_command == 5) else $fatal("incorrect command %d, should be 5", drive_command);
+		assert(drive_command == 4) else $fatal("incorrect command %d, should be 5", drive_command);
 	end
 	
 	amplitude = 80;
@@ -83,7 +97,7 @@ initial begin
 	
 	for (int i = 0; i < 5; i++) begin
 		#100
-		assert(drive_command == 5) else $fatal("incorrect command %d, should be 0", drive_command);
+		assert(drive_command == 4) else $fatal("incorrect command %d, should be 0", drive_command);
 	end
 	
 	ir_command = 32'hf30c6b86;
@@ -91,7 +105,7 @@ initial begin
 	
 	for (int i = 0; i < 5; i++) begin
 		#100
-		assert(drive_command == 5) else $fatal("incorrect command %d, should be 2", drive_command);
+		assert(drive_command == 4) else $fatal("incorrect command %d, should be 2", drive_command);
 	end
 	
 	detected_direction = 7;
@@ -126,10 +140,8 @@ initial begin
 	
 	for (int i = 0; i < 5; i++) begin
 		#100
-		assert(drive_command == 1) else $fatal("incorrect command %d, should be 0", drive_command);
+		assert(drive_command == 0) else $fatal("incorrect command %d, should be 0", drive_command);
 	end
-	
-	
 	
 	#200
 	$finish();
