@@ -392,22 +392,22 @@
 	wire [7:0] readdata;    //                   .readdata
 	wire       waitrequest; //                   .waitrequest
 
-  lcd_display (
-		 .clk(clk_50),
-		 .reset(measure_pulse),
-		 .command(command),
-		 .direction(avg_direction),
-		 .distance(follow_dist),
-		 // Avalon-MM signals to LCD_Controller slave
-		 .address(address),          // Address line for LCD controller
-		 .chipselect(chipselect),
-		 .byteenable(),
-		 .read(),
-		 .write(write),
-		 .waitrequest(waitrequest),
-		 .readdata(),
-		 .response(),
-		 .writedata(writedata)
+  	lcd_display lcd_display_inst (
+		.clk(clk_50),
+		.reset(measure_pulse),
+		.command(command),
+		.direction(avg_direction),
+		.distance(follow_dist),
+		// Avalon-MM signals to LCD_Controller slave
+		.address(address),          // Address line for LCD controller
+		.chipselect(chipselect),
+		.byteenable(),
+		.read(),
+		.write(write),
+		.waitrequest(waitrequest),
+		.readdata(),
+		.response(),
+		.writedata(writedata)
 	);
 
 	char_display u_char_display (

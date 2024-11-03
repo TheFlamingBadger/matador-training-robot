@@ -7,7 +7,7 @@ testbench_name="integration_top_level_tb"   # The testbench used for the simulat
 set -o errexit   # Exit on error
 
 # Step 1: Verilate your Verilog source into C++ code
-verilator $testbench_name.sv --main --exe --timing --trace --assert lcd_inst_pkg.sv -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC -I"$(pwd)/fsm" -I"$(pwd)/char_display" -I"$(pwd)/convolution_filt" -I"$(pwd)/pixel_filt" -I"$(pwd)/camera"
+verilator $testbench_name.sv --main --exe --timing --trace --assert lcd_inst_pkg.sv -Wno-CASEINCOMPLETE -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC -I"$(pwd)/1d_convolution" -I"$(pwd)/2d_convolution" -I"$(pwd)/char_display" -I"$(pwd)/command_translator" -I"$(pwd)/detect_direction" -I"$(pwd)/drive_logic" -I"$(pwd)/lcd_display" -I"$(pwd)/uart_tx"
 
 # Step 2: Change directory to obj_dir
 cd obj_dir

@@ -1,115 +1,149 @@
-module image_processor_tb;
+module integration_top_level_tb;
 
-    // Parameters:
-    parameter NUM_FILTERS = 5;
-    parameter IMAGE_WIDTH = 320;
+    // Parameters
     parameter IMAGE_HEIGHT = 240;
-    parameter PIXEL_BITS = 12;      // Bits per pixel (e.g., 12 bits for RGB444)
-    parameter KERNEL_SIZE = 5;
-    parameter KERNEL_BITS = 8;      // Bits per kernel value
-    parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT);
+    parameter IMAGE_WIDTH = 320;
 
-    // Image processor signals
-    logic                   clk_25_vga;
-    logic                   resend;
-    logic                   vga_ready;
-    logic [11:0]            rddata;
-    logic [ADDR_BITS-1:0]   rdaddress; // Address to read from BRAM
-    logic                   vga_start;
-    logic                   vga_end;
-    logic [30:0]            vga_data;
+    localparam VOLUME_THRESHOLD = 70;
+    localparam PITCH_THRESHOLD = 46;
 
-    // FSM signals
-    logic       clk;
-    logic       next_button;    // From debounce
-    logic       prev_button;    // From debounce
-    logic [2:0] filter_number;	// To lcd display
-    logic       lcd_reset;      // To lcd display
+    localparam IR_POWER = 32'hed126b86;		
+    localparam IR_MUTE = 32'hf30c6b86;		
+    localparam IR_PLAY_PAUSE = 32'he9166b86;	
+    localparam IR_RETURN = 32'he8176b86;	
+    localparam IR_1 = 32'hfe016b86;	
+    localparam IR_2 = 32'hfd026b86;	
+    localparam IR_3 = 32'hfc036b86;	
+    localparam IR_CHANNEL_UP = 32'he51a6b86;
+    localparam IR_CHANNEL_DOWN = 32'he11e6b86;	
 
-    // LCD Testbench signals
-    logic        address;
-    logic        chipselect;
-    logic        byteenable;
-    logic        read;
-    logic        write;
-    logic        waitrequest;
-    logic [7:0]  readdata;    // Unused
-    logic [1:0]  response;    // Unused
-    logic [7:0]  writedata;
+    // User input signals
+    logic [15:0] audio_pitch;       // from "fft_pitch_detect"
+    logic [32:0] audio_magnitude;   // from "fft_pitch_detect"
+    logic [31:0] ir_data;           // from "ir_reader"
+    logic        ir_valid;          // from "ir_reader"
+    logic [7:0]  avg_distance;      // from "my_softcore" (SoC DSP)
+    logic [11:0] rddata;
+    logic [16:0] rdaddress;
+
+    // Other inputs
+    logic        clk;
+    logic        clk_25_vga;
+    logic        reset;
+
+    //------------- Start Image Processor Signals -------------------
+    logic [11:0] filtered_data;
+    logic [16:0] delayed_address;
+    logic        no_red;
+    logic [4:0]  direction;
+    logic [4:0]  avg_direction;
     
-    // Convolution filter signals
-    logic [15:0] audio_pitch;
-    logic signed [6:0] curr_kernel [24:0];
-
-    // Pixel filter signals
-    logic div_flag;
-    logic [5:0] r_mod;
-    logic [5:0] g_mod;
-    logic [5:0] b_mod;
-
-    // "Show evidence that the VGA output (not input) changes with different input
-    // frequencies. You should also show the LCD controller output with user input."
-
-    // Instantiate devices under test
-    pixel_filt dut_pixel_filt (
-        .clk(clk),
-        .filter_number(filter_number),
-        .div_flag(div_flag),
-        .audio_pitch(audio_pitch),
-        .r_mod(r_mod),
-        .g_mod(g_mod),
-        .b_mod(b_mod)
+    // twod_convolution_filt twod_filt_inst (
+    //     .clk            (clk_25_vga),
+    //     .rddata         (rddata),
+    //     .rdaddress      (rdaddress),
+    //     .filtered_data  (filtered_data),
+    //     .delayed_address(delayed_address)
+    // );
+    assign delayed_address = rdaddress;
+    assign filtered_data = rddata;
+   
+    detect_direction detect_direction_inst (
+        .clk        (clk),
+        .rdaddress  (delayed_address),  // in: from address generator
+        .rddata     (filtered_data),	// in: from frame buffer
+        .direction  (direction),		// out: to drive logic
+        .no_red     (no_red),			// out: to drive logic
+        .vga_start  (),
+        .vga_end    (),
+        .vga_data   ()
     );
+  
+    oned_convolution_filt oned_filt_inst (
+		.clk    (clk),
+		.reset  (reset),
+		.raw_in (direction),
+		.avg_out(avg_direction)
+	);
+    //------------- End Image Processor Signals ---------------------
 
-    convolution_filt dut_convolution_filt (
-        .clk(clk),
-        .filter_number(filter_number),
-        .audio_pitch(audio_pitch),
-        .curr_kernel(curr_kernel)
+    //------------- Start Drive Logic Signals -----------------------
+    logic [2:0] command;
+    logic [7:0] follow_dist;
+    logic [2:0] difficulty;
+    logic       valid;
+    logic       noise_registered;
+
+    drive_logic drive_logic_inst (
+		.clk                (clk),
+		.no_red				(no_red),		        // in: from detect direction
+		.detected_direction (avg_direction),		// in: from detect direction
+		.average_distance   (avg_distance),			// in: from ultrasonic
+		.pitch              (audio_pitch),	        // in: from microphone
+		.amplitude          (audio_magnitude),		// in: from microphone
+		.ir_command			(ir_data),				// in: from ir reader
+		.ir_data_ready		(ir_valid),		        // in: from ir reader
+		.drive_command      (command),				// out: to command translator
+		.follow_distance	(follow_dist),			// out: to lcd display
+		.valid              (valid),				// out: to command translator
+		.difficulty_disp	(difficulty),			// out: to command translator
+		.noise_registered   (noise_registered)		// out: to ledrs
     );
+    //------------- End Drive Logic Signals -------------------------
 
-    lcd_display dut_lcd_display (
+    //------------- Start Command Output ----------------------------
+    logic       cmd_ready;
+    logic       uart_ready = 1;
+    logic [7:0] ascii_out;
+    logic       serial_out;
+    
+    command_translator command_translator_inst (
+        .clk        (clk),
+        .command    (command),   	// in: from drive logic
+        .difficulty (difficulty),	// in: from drive logic
+        .valid      (valid),		// in: from drive logic
+        .uart_ready (uart_ready),	// in: from UART
+        .ascii_out  (ascii_out), 	// out: to UART
+        .cmd_ready  (cmd_ready)  	// out: to UART
+    );
+    
+    uart_tx uart_tx_inst (
+		.clk        (clk),
+        .reset      (reset),
+		.data_tx    (ascii_out),	// in: from command translator
+		.valid      (cmd_ready),	// in: from command translator
+		.uart_out   (serial_out),	// out: to base
+		.tx_ready   ()	            // out: to command translator
+    );
+    //------------- End Command Output ------------------------------
+
+    //------------- LCD Display Start -------------------------------
+  	wire       address;     //   avalon_lcd_slave.address
+ 	wire       chipselect;  //                   .chipselect
+	wire       read;        //                   .read
+	wire       write;       //                   .write
+	wire [7:0] writedata;   //                   .writedata
+	wire [7:0] readdata;    //                   .readdata
+	wire       waitrequest; //                   .waitrequest
+
+    lcd_display lcd_display_inst (
         .clk(clk),
-        .reset(lcd_reset),
-        .filter_number(filter_number),
-        .address(address),
+        .reset(reset),
+        .command(command),
+        .direction(avg_direction),
+        .distance(follow_dist),
+        // Avalon-MM signals to LCD_Controller slave
+        .address(address),          // Address line for LCD controller
         .chipselect(chipselect),
-        .byteenable(byteenable),
-        .read(read),
+        .byteenable(),
+        .read(),
         .write(write),
         .waitrequest(waitrequest),
-        .readdata(readdata),
-        .response(response),
+        .readdata(),
+        .response(),
         .writedata(writedata)
-    );
-
-    filter_fsm #(
-        .NUM_FILTERS(NUM_FILTERS)
-    ) dut_filter_fsm (
-        .clk(clk),
-        .next_button(next_button),
-        .prev_button(prev_button),
-        .filter_number(filter_number),
-        .lcd_reset(lcd_reset)
-    );
-
-    image_processor dut_image_processor (
-        // Inputs
-        .clk_25_vga(clk_25_vga),
-        .resend(resend),
-        .vga_ready(vga_ready),
-        .rddata(rddata),
-        .r_mod(r_mod),
-        .g_mod(g_mod),
-        .b_mod(b_mod),
-        .div_flag(div_flag),
-        .curr_kernel(curr_kernel),
-        // Outputs
-        .rdaddress(rdaddress),
-        .vga_start(vga_start),
-        .vga_end(vga_end),
-        .vga_data(vga_data)
-    );
+	);
+    //------------- LCD Display End ---------------------------------
 
     // Clock generation
     initial begin
@@ -119,100 +153,113 @@ module image_processor_tb;
 
     initial begin
         clk = 0;
-        forever #5 clk = ~clk; // 100MHz clock
+        forever #10 clk = ~clk; // 50MHz clock
     end
 
     // Test vectors
     initial begin
-        $dumpfile("waveform.vcd"); // File name
-        $dumpvars(0, image_processor_tb); // Select all variables in the current scope
+        $dumpfile("waveform.vcd");
+        $dumpvars(0, integration_top_level); // Select all variables in the current scope
         
-        // Initialize state and inputs
-        rddata = 12'h888;
-        vga_ready = 1;
+        // Initialise variables
         audio_pitch = 0;
-        next_button = 0;
-        prev_button = 0; #10
+        audio_magnitude = 0;
+        ir_data = 0;
+        ir_valid = 0;        
+        avg_distance = 40;
+        rddata = 0;
+        rdaddress = 0;
+        reset = 0; // Could be a problem if some modules expect active low
+        #40
 
-        // Test 1: Correct initialisation
-        // Correct filter number
-        assert( filter_number == 0 ) else $fatal("FSM initialised to incorrect state");
-        // Correct LCD output
-        assert( {address, writedata} == CLEAR_DISPLAY ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        #20
-        assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        #20
-        assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        #20
-        assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        #20
-        assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        #20
-        assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        #20
-        assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        #20
-        assert( {address, writedata} == _COLON ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        #20
-        assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        #20
-        assert( {address, writedata} == _0 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '1'.", writedata);
+        // Test 1: Camera and IR on-off controls 
+        rdaddress = 1;             // Reset
+        rddata = 12'hF00;          // Set to red
+        ir_valid = 1;  
+        ir_data = IR_PLAY_PAUSE;
+
+        for(int i = 2; i<503; i++) begin // Show red frame
+            #20
+            rdaddress = i;         // Set pixel address
+        end
+
+        rdaddress = 0;      // Output detected direction
+        #80
+        assert( command == 2 ) else $fatal("Error: detected direction incorrect");
+        #400         
         
-        // Correct filter output
-        #92000 // Wait for buffer to fill
-        assert( vga_data == 30'b100010000010001000001000100000 ) else $fatal("Error: image modified by filter 0");
+        ir_data = IR_POWER; // Demo: Resumes moving
+        #40
+        assert( command == 2 ) else $fatal("Error: detected direction incorrect");
+        #400
+
+        // Test 2: Audio and IR mute controls
+        ir_data = IR_MUTE;          // Responds to sound, then doesn't
+        ir_data = IR_RETURN;        // Responds to sound again
+        ir_valid = 1;  
+        ir_data = IR_PLAY_PAUSE;
+
+        rdaddress = 1;                   // Reset
+
+        for(int i = 2; i<503; i++) begin // Show red frame
+            #20
+            rdaddress = i;               // Set pixel address
+        end
+
+        rdaddress = 0;      // Output detected direction
+        #40
+        assert( command == 3 ) else $fatal("Error: detected direction incorrect");
+        audio_magnitude = VOLUME_THRESHOLD + 1;
+        audio_pitch = PITCH_THRESHOLD + 1;
+        #80
+        assert( command == 0 ) else $fatal("Error: detected direction incorrect");
+
+        audio_magnitude = VOLUME_THRESHOLD + 1;
+        audio_pitch = PITCH_THRESHOLD;
+        #80
+        assert( command == 3 ) else $fatal("Error: detected direction incorrect");
+        #200
         
-        // Assert change in pitch 
-        audio_pitch = 200;
-        #92000
-        assert( vga_data == 30'b100010000010001000001000100000 ) else $fatal("Error: image modified by filter 0");
+        // Test 3: IR difficulty selection
+        ir_data = IR_1; #600
+        ir_data = IR_2; #600
+        ir_data = IR_3; #600
 
-        // Test 2: Button pressed changes filter and updates LCD
-        next_button = 1; #10
-        next_button = 0; #10
+        // Test 4: Ultrasonic and IR distance controls
+        rdaddress = 1;             // Reset
+        rddata = 12'hF00;          // Set to red
+        ir_valid = 1;  
+        ir_data = IR_PLAY_PAUSE;
 
-        // Correct filter number
-        assert( filter_number == 1 ) else $fatal("FSM initialised to incorrect state");
-        // Correct LCD output
-        assert( {address, writedata} == CLEAR_DISPLAY ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        #20
-        assert( {address, writedata} == _F ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'F'.", writedata); 
-        #20
-        assert( {address, writedata} == _i ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'i'.", writedata); 
-        #20
-        assert( {address, writedata} == _l ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'l'.", writedata);
-        #20
-        assert( {address, writedata} == _t ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 't'.", writedata);
-        #20
-        assert( {address, writedata} == _e ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'e'.", writedata);
-        #20
-        assert( {address, writedata} == _r ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of 'r'.", writedata);
-        #20
-        assert( {address, writedata} == _COLON ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        #20
-        assert( {address, writedata} == _SPACE ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of ' '.", writedata);
-        #20
-        assert( {address, writedata} == _1 ) else $fatal("Test 2 Failed: Wrong character asserted. '%c' instead of '1'.", writedata);            
+        ir_data = IR_CHANNEL_UP; #80
+        ir_data = 0; #20
+        ir_data = IR_CHANNEL_UP; #80
+        ir_data = 0; #20
+        ir_data = IR_CHANNEL_DOWN; #80
         
-        // Test effect of pitch
-        #92000
-        assert( vga_data == 30'b111111110011111111001111111100 ) else $fatal("Error: image modified by filter 0");
+        assert( follow_dist == 30 ) else $fatal("Error: detected direction incorrect");
 
-        // Test 2: Button pressed changes filter and updates LCD
-        next_button = 1; #10
-        next_button = 0; #10
+        rdaddress = 1;             // Reset
+        rddata = 12'hF00;          // Set to red
+        ir_valid = 1;  
+        ir_data = IR_PLAY_PAUSE;
+        avg_distance = 40;
 
-        // Assert change in pitch 
-        audio_pitch = 250;
-        #92000
-        // assert( vga_data == 30'b0 ) else $fatal("Error: image modified by filter 0");
+        for(int i = 2; i<503; i++) begin // Show red frame
+            #20
+            rdaddress = i;         // Set pixel address
+        end
 
-        // Assert change in pitch 
-        audio_pitch = 100;
-        #92000
-        // assert( vga_data == 30'b0 ) else $fatal("Error: image modified by filter 0");
+        rdaddress = 0;
+        #80
+        assert( command == 3 ) else $fatal("Error: detected direction incorrect");
+        #400         
+        
+        avg_distance = 25;          // Demo: Stops moving when too close
+        #40
+        assert( command == 3 ) else $fatal("Error: detected direction incorrect");
+        #400
 
-        #20
         $finish;
     end
 
