@@ -4,24 +4,23 @@ module drive_logic #(
 	parameter DEFAULT_LEFT_BOUND = 8,
 	parameter DEFAULT_RIGHT_BOUND = 15,
 	parameter IMAGE_WIDTH = 320,
-   parameter IMAGE_HEIGHT = 240,
+   	parameter IMAGE_HEIGHT = 240,
 	parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
 	parameter STUN_TIME = 500000000
-	)(
-	input wire                 clk,
-	input wire 						no_red,
-	input 	  [ADDR_BITS-1:0] pixel_count,
-	input wire [$clog2(FOV)-1:0] detected_direction,
-	input wire [7:0]           average_distance,
-	input wire [8:0]           pitch,
-	input wire [10:0]          amplitude,
-	input wire [31:0]				ir_command,
-	input wire						ir_data_ready,
-	output [2:0]               drive_command,
-	output [7:0]					follow_distance,
-	output                     valid,
-	output [2:0]					difficulty_disp,
-	output							noise_registered
+)(
+	input wire          clk,
+	input wire 			no_red,
+	input wire 	[4:0] 	detected_direction,
+	input wire 	[7:0]   average_distance,
+	input wire 	[8:0]   pitch,
+	input wire 	[10:0]  amplitude,
+	input wire 	[31:0]	ir_command,
+	input wire			ir_data_ready,
+	output 	   	[2:0]   drive_command,
+	output 	   	[7:0]	follow_distance,
+	output              valid,
+	output 	   	[2:0]	difficulty_disp,
+	output				noise_registered
 );
 	
 	logic bot_off = 1;
@@ -35,6 +34,7 @@ module drive_logic #(
 	logic [4:0] right_bound = DEFAULT_RIGHT_BOUND;
 	logic [31:0] last_command;
 	logic [$clog2(FOV)-1:0] last_direction;
+	logic [2:0] drive_command_q;
 	
 	assign follow_distance = follow_distance_q;
 	assign difficulty_disp = difficulty;
@@ -54,9 +54,9 @@ module drive_logic #(
 				32'he9166b86: bot_off <= 0;																									// PLAY  : Go
 				32'hf30c6b86: mute_on <= 1;																									// MUTE  : Mute
 				32'he8176b86: begin																												// RETURN: Reset to Defaults
-									  mute_on <= 0;
-									  follow_distance_q <= DEFAULT_DISTANCE;																
-								  end
+								mute_on <= 0;
+								follow_distance_q <= DEFAULT_DISTANCE;																
+							  end
 				32'hfe016b86: difficulty <= 1;																								// 1: Difficult 1 - Easy
 				32'hfd026b86: difficulty <= 2;																								// 2: Difficult 2 - Medium
 				32'hfc036b86: difficulty <= 3;																								// 3: Difficult 3 - Hard
@@ -162,17 +162,18 @@ module drive_logic #(
 	
 	always_comb begin
 		case (current_state)
-			Stop: 		drive_command = 0;
-			TurnLeft: 	drive_command = 1;
-			Left: 		drive_command = 2;
-			Straight: 	drive_command = 3;
-			Right: 		drive_command = 4;
-			TurnRight:  drive_command = 5;
+			Stop: 		drive_command_q = 0;
+			TurnLeft: 	drive_command_q = 1;
+			Left: 		drive_command_q = 2;
+			Straight: 	drive_command_q = 3;
+			Right: 		drive_command_q = 4;
+			TurnRight:  drive_command_q = 5;
 		endcase 
 	end
-	
+
 	
 	assign valid = 1;
+	assign drive_command = drive_command_q;
 	
 endmodule
 			

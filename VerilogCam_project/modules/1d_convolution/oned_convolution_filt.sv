@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module oned_convolution_filt (
     input wire clk,            // Clock signal
     input wire reset,          // Reset signal (resets buffer and output)

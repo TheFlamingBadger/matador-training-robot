@@ -4,37 +4,32 @@ module twod_convolution_filt #(
     parameter PIXEL_BITS = 12,      // Bits per pixel (e.g., 12 bits for RGB444)
     parameter KERNEL_SIZE = 5,
     parameter KERNEL_BITS = 8,      // Bits per kernel value
-    parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT),
-	 parameter THRESHOLD = 27 
+    parameter ADDR_BITS = $clog2(IMAGE_WIDTH * IMAGE_HEIGHT)
 )(		
     input wire 						clk,
-	 input wire [PIXEL_BITS-1:0] 	rddata,
-	 input wire [ADDR_BITS-1:0] 	rdaddress,
-	 output		[ADDR_BITS-1:0]	delayed_address,
-	 output 		[PIXEL_BITS-1:0] 	filtered_data,
-	 output								vga_start,
-	 output								vga_end,
-	 output		[30:0]				vga_data
+	input wire  [PIXEL_BITS-1:0] 	rddata,
+	input wire  [ADDR_BITS-1:0] 	rdaddress,
+	output		[ADDR_BITS-1:0]		delayed_address,
+	output 		[PIXEL_BITS-1:0] 	filtered_data
 );
 	
-	 logic [7:0] kernel [8:0] = '{8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1};
-	 logic [11:0] row_lsfr [2:0][319:0]; // 3 rows of 320 elements of 12 pixels each
-	 logic [15:0] row_address;
-	 int col_old = 0;
+	logic [7:0] kernel [8:0] = '{8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1};
+	logic [11:0] row_lsfr [2:0][319:0]; // 3 rows of 320 elements of 12 pixels each
+	logic [15:0] row_address;
+	int col_old = 0;
     int row_old = 0;
 	 
-	 assign filtered_data = filtered_data_q;
+	assign filtered_data = filtered_data_q;
 	 
-	 assign delayed_address = ( rdaddress < 321 ) ? IMAGE_WIDTH*IMAGE_HEIGHT - 321 - 1 : rdaddress - 321;
+	assign delayed_address = ( rdaddress < 321 ) ? IMAGE_WIDTH*IMAGE_HEIGHT - 321 - 1 : rdaddress - 321;
 	 
-	 always_ff @(posedge clk) begin: build_shift_registers
+	always_ff @(posedge clk) begin: build_shift_registers
 	 
 		// Calculate row index
 		row_address = rdaddress % 320;
 		
 		// Load pixel into row
 		row_lsfr[0][row_address] <= rddata;
-		
 		
 		// When row full, shift rows downward
 		if( (rdaddress + 1)%320 == 0) begin
@@ -43,42 +38,41 @@ module twod_convolution_filt #(
 		end
 		
 		row_old <= rdaddress / 320;
-      col_old <= rdaddress % 320;
+      	col_old <= rdaddress % 320;
 		
-	 end
+	end
 	 
+	// Calculate and set filter
+	logic [11:0] kernel_sum = 8;
+	logic [11:0] filtered_data_q;
 	 
-	 // Calculate and set filter
-	 logic [11:0] kernel_sum = 8;
-	 logic [11:0] filtered_data_q;
+	logic [4:0] r_pixel_value [7:0];
+	logic [4:0] g_pixel_value [7:0];
+	logic [4:0] b_pixel_value [7:0]; 
 	 
-	 logic [4:0] r_pixel_value [7:0];
-	 logic [4:0] g_pixel_value [7:0];
-	 logic [4:0] b_pixel_value [7:0]; 
-	 
-	 logic [11:0] r_weighted [7:0];
-	 logic [11:0] g_weighted [7:0];
-	 logic [11:0] b_weighted [7:0];
-	 
-	 logic [12:0] r_step2 [3:0];
-	 logic [12:0] g_step2 [3:0];
-	 logic [12:0] b_step2 [3:0];
-	 
-	 logic [13:0] r_step3 [1:0];
-	 logic [13:0] g_step3 [1:0];
-	 logic [13:0] b_step3 [1:0];
+	logic [11:0] r_weighted [7:0];
+	logic [11:0] g_weighted [7:0];
+	logic [11:0] b_weighted [7:0];
 	
-	 logic [16:0] r_total;
-	 logic [16:0] g_total;
-	 logic [16:0] b_total;
+	logic [12:0] r_step2 [3:0];
+	logic [12:0] g_step2 [3:0];
+	logic [12:0] b_step2 [3:0];
+	
+	logic [13:0] r_step3 [1:0];
+	logic [13:0] g_step3 [1:0];
+	logic [13:0] b_step3 [1:0];
+
+	logic [16:0] r_total;
+	logic [16:0] g_total;
+	logic [16:0] b_total;
+	
+	logic [16:0] r_result;
+	logic [16:0] g_result;
+	logic [16:0] b_result;
 	 
-	 logic [16:0] r_result;
-	 logic [16:0] g_result;
-	 logic [16:0] b_result;
+	int j = 0;
 	 
-	 int j = 0;
-	 
-	 always_ff @(posedge clk) begin: convolute_shift_register
+	always_ff @(posedge clk) begin: convolute_shift_register
  
 		// Convolute kernel centred with current pixel
 		if ((row_address > 0) && (row_address < 319)) begin
@@ -134,23 +128,6 @@ module twod_convolution_filt #(
 		else begin
 			filtered_data_q <= {rddata[11:8], rddata[7:4], rddata[3:0]};
 		end
-	 end
-	 
-	 
-	 // Block to detect frame start and end
-    always @(*) begin
-		  vga_start = (col_old == 0 && row_old == 0) ? 1'b1 : 1'b0;
-        vga_end = (col_old == IMAGE_WIDTH - 1 && row_old == IMAGE_HEIGHT - 1) ? 1'b1 : 1'b0;
-    end
-
-	 
-    // Convert processed data to VGA format
-    always @(*) begin
-        vga_data = {
-            {filtered_data_q[PIXEL_BITS-1:PIXEL_BITS-4], filtered_data_q[PIXEL_BITS-1:PIXEL_BITS-4], 2'b00},
-            {filtered_data_q[PIXEL_BITS-5:PIXEL_BITS-8], filtered_data_q[PIXEL_BITS-5:PIXEL_BITS-8], 2'b00},
-            {filtered_data_q[PIXEL_BITS-9:PIXEL_BITS-12], filtered_data_q[PIXEL_BITS-9:PIXEL_BITS-12], 2'b00}
-        };
-    end
+	end
 
 endmodule
