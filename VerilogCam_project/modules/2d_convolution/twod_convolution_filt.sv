@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module twod_convolution_filt #(
     parameter IMAGE_WIDTH = 320,
     parameter IMAGE_HEIGHT = 240,

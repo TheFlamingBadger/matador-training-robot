@@ -9,7 +9,7 @@ module oned_convolution_filt (
     parameter BUFFER_SIZE = 50;
     reg [7:0] buffer[0:BUFFER_SIZE-1];  // Buffer to store the last 50 data points
     reg [15:0] sum;                     // Larger sum to avoid overflow (16-bit sum for 8-bit inputs)
-    integer i;                          // Loop index
+    integer i;                           // Loop index
     integer count;                      // Counter to track how many elements are in the buffer
     integer idx;                        // Pointer to the oldest entry in the buffer
 
