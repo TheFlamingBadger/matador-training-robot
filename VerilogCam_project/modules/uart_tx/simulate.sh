@@ -7,7 +7,7 @@ testbench_name="uart_tx_tb"   # The testbench used for the simulation
 set -o errexit   # Exit on error
 
 # Step 1: Verilate your Verilog source into C++ code
-verilator $testbench_name.sv --main --exe --timing --trace --assert
+verilator $testbench_name.sv --main --exe --timing --trace -Wno-WIDTHEXPAND --assert
 
 # Step 2: Change directory to obj_dir
 cd obj_dir

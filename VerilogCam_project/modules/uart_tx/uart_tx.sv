@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module uart_tx #(
       parameter CLKS_PER_BIT = (50_000_000/115_200), // E.g. Baud_rate = 115200 with FPGA clk = 50MHz
       parameter BITS_N       = 8 // Number of data bits per UART frame
