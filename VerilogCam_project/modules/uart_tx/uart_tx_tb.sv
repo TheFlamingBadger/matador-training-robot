@@ -40,6 +40,9 @@ module uart_tx_tb;
       data_tx = 8'b0;
       valid = 0;
 
+      #1000;
+
+
       // Reset the module
       #100 reset = 0;
 
