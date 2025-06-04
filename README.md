@@ -6,7 +6,9 @@
 >
 > The system has been designed to behave like a bull to provide an ethical alternative for bull-fighter training.
 
-![Mentador Hardware](images/hardware.png)
+<p align="center">
+  <img src="images/hardware.png" width="50%" alt="Mentador Hardware">
+</p>
 
 ---
 
@@ -44,11 +46,6 @@
 ## 🧠 System Architecture
 
 - **Languages**: Verilog, SystemVerilog, C, Bash
-
-![System Diagram](images/system-diagram.jpg)
-
-[🔍 View Full Diagram](images/system-diagram.jpg)
-
 - **Key Algorithms**:
   - **Digital Signal Processing:**
     - `2D Convolution` - Applies a Gaussian kernel to the video feed to reject pixel outliers and improve target detection
@@ -58,6 +55,12 @@
   - **Logic Control:**
     - `Drive Logic FSM` - Implements a Mealy finite state machine to determine system behaviour
     - `UART` - Implements a UART communication soft-IP core also using a Mealy finite state machine
+
+<p align="center">
+  <img src="images/system-diagram.jpg" width="90%" alt="System Diagram">
+</p>
+
+[🔍 View Full Diagram](images/system-diagram.jpg)
 
 ---
 
