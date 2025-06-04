@@ -6,7 +6,7 @@
 >
 > The system has been designed to behave like a bull to provide an ethical alternative for bull-fighter training.
 
-![Mentador Hardware](docs/hardware.png)
+![Mentador Hardware](images/hardware.png)
 
 ---
 
@@ -45,9 +45,9 @@
 
 - **Languages**: Verilog, SystemVerilog, C, Bash
 
-![System Diagram](docs/system-diagram.png)
+![System Diagram](images/system-diagram.jpg)
 
-[🔍 View Full Diagram](docs/system-diagram.png)
+[🔍 View Full Diagram](images/system-diagram.jpg)
 
 - **Key Algorithms**:
   - **Digital Signal Processing:**
@@ -82,5 +82,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - Angus McLean – [@TheFlamingBadger](https://github.com/TheFlamingBadger)
 - Christopher Fathallah – [@Koukiflix](https://github.com/Koukiflix)
 - Siddarth Ramasubramanian – [@sram8836](https://github.com/sram8836)
-- Joshua Novik - [@joshunov](https://github.com/joshunov)
+- Joshua Novick - [@joshunov](https://github.com/joshunov)
 - Hugo Du Temple – [@HugoduTemple](https://github.com/HugoduTemple)
