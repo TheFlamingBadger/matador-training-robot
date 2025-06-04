@@ -1,6 +1,6 @@
 # Mentador: The Matador Training Robot
 
-**USYD MTRX3700 Major Project**
+**USYD MTRX3700 Major Project** - [🚫 Academic Integrity Notice](#-academic-integrity-notice)
 
 > Mentador is digital signal processing project exclusively deployed on an FPGA (Intel-Altera Cyclone IV) integrating on-board processing of microphone feed, camera feed, ultrasonic measurements, and infrared remote control to compute control signals sent over UART to a UGV02 six-wheeled robot chassis.
 >
@@ -60,8 +60,6 @@
   <img src="images/system-diagram.jpg" width="90%" alt="System Diagram">
 </p>
 
-[🔍 View Full Diagram](images/system-diagram.jpg)
-
 ---
 
 ## 🧪 Module Simulation
@@ -87,3 +85,15 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - Siddarth Ramasubramanian – [@sram8836](https://github.com/sram8836)
 - Joshua Novick - [@joshunov](https://github.com/joshunov)
 - Hugo Du Temple – [@HugoduTemple](https://github.com/HugoduTemple)
+
+---
+
+## 🚫 Academic Integrity Notice
+
+This project was created as part of Mechatronics 3 (MTRX3700) at The University of Sydney.
+
+Students currently or in the future undertaking this course are **not permitted** to copy, reference, or reuse any part of this repository — including code, system design, documentation, or commit history — as part of their coursework or submissions.
+
+Use of this repository in violation of course academic integrity policies may constitute plagiarism or misconduct.
+
+If you are a student in this course, please close this repository and do not reference it.
